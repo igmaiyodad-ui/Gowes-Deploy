@@ -2,6 +2,7 @@
 // ==========================================
 // 1. KONFIGURASI SESSION (HARDENING)
 // ==========================================
+ob_start(); // PENTING: buffer output agar header() tidak gagal
 ini_set('session.cookie_httponly', 1);
 ini_set('session.use_only_cookies', 1);
 session_set_cookie_params(['samesite' => 'Strict']);
@@ -24,16 +25,16 @@ if (isset($_SESSION['role'])) {
     if ($_SESSION['role'] === 'superadmin') {
         header("Location: ../superadmin/dashboard.php");
     } elseif ($_SESSION['role'] === 'admin') {
-        header("Location: ../admin/dashboard.php"); 
+        header("Location: ../admin/dashboard.php");
     } elseif ($_SESSION['role'] === 'petugas') {
-        header("Location: ../petugas/dashboard.php"); 
+        header("Location: ../petugas/dashboard.php");
     } else {
-        header("Location: ../mahasiswa/peminjaman.php"); 
+        header("Location: ../mahasiswa/peminjaman.php");
     }
     exit;
 }
 
-require_once '../config/koneksi.php'; 
+require_once '../config/koneksi.php';
 
 // ==========================================
 // 2. GENERATE CSRF TOKEN
@@ -48,7 +49,7 @@ $error = '';
 // 3. PROSES LOGIN
 // ==========================================
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    
+
     // Verifikasi CSRF Token
     if (!isset($_POST['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])) {
         die("Invalid CSRF token. Silakan refresh halaman.");
@@ -56,7 +57,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $no_identitas = trim($_POST['nim']);
     $password     = $_POST['password'];
-    
+
     // Validasi Panjang Input
     if (strlen($no_identitas) > 50 || strlen($password) > 100) {
         $error = "Input terlalu panjang!";
@@ -68,28 +69,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $superadmin = $stmt4->fetch();
 
             if ($superadmin && (password_verify($password, $superadmin['password']) || $password === $superadmin['password'])) {
-                session_regenerate_id(true); 
+                session_regenerate_id(true);
                 $_SESSION['role']          = 'superadmin';
                 $_SESSION['id_superadmin'] = $superadmin['id_superadmin'];
-                $_SESSION['nama']          = $superadmin['username']; 
+                $_SESSION['nama']          = $superadmin['username'];
                 $_SESSION['username']      = $superadmin['username'];
-                header("Location: ../superadmin/dashboard.php"); 
+                header("Location: ../superadmin/dashboard.php");
                 exit;
             }
 
             // 2. Cek ke tabel Peminjam (Mahasiswa)
+            // Catatan: tabel `peminjam` TIDAK memiliki kolom `jenis_peminjam`
             $stmt = $pdo->prepare("SELECT id_peminjam, no_identitas, nama, password, no_telp, alamat FROM peminjam WHERE no_identitas = :id");
             $stmt->execute(['id' => $no_identitas]);
             $peminjam = $stmt->fetch();
 
             if ($peminjam && (password_verify($password, $peminjam['password']) || $password === $peminjam['password'])) {
-                session_regenerate_id(true); 
+                session_regenerate_id(true);
                 $_SESSION['role']           = 'peminjam';
                 $_SESSION['id_peminjam']    = $peminjam['id_peminjam'];
-                $_SESSION['nama']           = $peminjam['nama']; 
+                $_SESSION['nama']           = $peminjam['nama'];
                 $_SESSION['no_identitas']   = $peminjam['no_identitas'];
-               $_SESSION['jenis_peminjam'] = 'Mahasiswa';
-                header("Location: ../mahasiswa/peminjaman.php"); 
+                $_SESSION['jenis_peminjam'] = 'Mahasiswa'; // hardcode (tidak ada di DB)
+                header("Location: ../mahasiswa/peminjaman.php");
                 exit;
             }
 
@@ -102,10 +104,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 session_regenerate_id(true);
                 $_SESSION['role']        = 'petugas';
                 $_SESSION['id_petugas']  = $petugas['id_petugas'];
-                $_SESSION['nama']        = $petugas['username']; 
+                $_SESSION['nama']        = $petugas['username'];
                 $_SESSION['username']    = $petugas['username'];
                 $_SESSION['id_shelter']  = $petugas['id_shelter'];
-                header("Location: ../petugas/dashboard.php"); 
+                header("Location: ../petugas/dashboard.php");
                 exit;
             }
 
@@ -118,16 +120,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 session_regenerate_id(true);
                 $_SESSION['role']      = 'admin';
                 $_SESSION['id_admin']  = $admin['id_admin'];
-                $_SESSION['nama']      = $admin['username']; 
+                $_SESSION['nama']      = $admin['username'];
                 $_SESSION['username']  = $admin['username'];
-                header("Location: ../admin/dashboard.php"); 
+                header("Location: ../admin/dashboard.php");
                 exit;
             }
 
             $error = "Nomor Identitas atau Password salah!";
 
         } catch (PDOException $e) {
-            error_log($e->getMessage()); 
+            error_log($e->getMessage());
             $error = "Terjadi kesalahan pada sistem. Silakan coba beberapa saat lagi.";
         }
     } else {
