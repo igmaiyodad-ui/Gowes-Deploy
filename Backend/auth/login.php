@@ -89,11 +89,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $_SESSION['id_peminjam']    = $peminjam['id_peminjam'];
                 $_SESSION['nama']           = $peminjam['nama']; 
                 $_SESSION['no_identitas']   = $peminjam['no_identitas'];
-                $_SESSION['jenis_peminjam'] = $peminjam['jenis_peminjam'];
+                $_SESSION['jenis_peminjam'] = $peminjam['jenis_peminjam'] ?? 'Mahasiswa';
                 header("Location: ../mahasiswa/peminjaman.php"); 
                 exit;
             }
-
             // 3. Cek ke tabel Petugas
             $stmt2 = $pdo->prepare("SELECT * FROM petugas WHERE username = :id");
             $stmt2->execute(['id' => $no_identitas]);
