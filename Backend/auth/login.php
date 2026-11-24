@@ -222,5 +222,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   </div>
 
   <script src="../assets/js/login.js"></script>
+<script src="../assets/js/loader.js"></script>
 </body>
 </html>
