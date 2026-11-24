@@ -62,12 +62,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = "Input terlalu panjang!";
     } elseif (!empty($no_identitas) && !empty($password)) {
         try {
-            // 1. Cek ke tabel Superadmin (Paling Prioritas)
-            $stmt4 = $pdo->prepare("SELECT * FROM superadmin WHERE username = :id");
+            // 1. Cek ke tabel Superadmin
+            $stmt4 = $pdo->prepare("SELECT id_superadmin, username, password FROM superadmin WHERE username = :id");
             $stmt4->execute(['id' => $no_identitas]);
             $superadmin = $stmt4->fetch();
 
-            // Menggunakan password_verify DAN fallback plaintext (karena di DB Anda masih admin123)
             if ($superadmin && (password_verify($password, $superadmin['password']) || $password === $superadmin['password'])) {
                 session_regenerate_id(true); 
                 $_SESSION['role']          = 'superadmin';
@@ -79,7 +78,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
 
             // 2. Cek ke tabel Peminjam (Mahasiswa)
-            $stmt = $pdo->prepare("SELECT * FROM peminjam WHERE no_identitas = :id");
+            $stmt = $pdo->prepare("SELECT id_peminjam, no_identitas, nama, password, no_telp, alamat FROM peminjam WHERE no_identitas = :id");
             $stmt->execute(['id' => $no_identitas]);
             $peminjam = $stmt->fetch();
 
@@ -89,12 +88,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $_SESSION['id_peminjam']    = $peminjam['id_peminjam'];
                 $_SESSION['nama']           = $peminjam['nama']; 
                 $_SESSION['no_identitas']   = $peminjam['no_identitas'];
-                $_SESSION['jenis_peminjam'] = $peminjam['jenis_peminjam'] ?? 'Mahasiswa';
+                $_SESSION['jenis_peminjam'] = 'Mahasiswa';
                 header("Location: ../mahasiswa/peminjaman.php"); 
                 exit;
             }
+
             // 3. Cek ke tabel Petugas
-            $stmt2 = $pdo->prepare("SELECT * FROM petugas WHERE username = :id");
+            $stmt2 = $pdo->prepare("SELECT id_petugas, id_shelter, username, password FROM petugas WHERE username = :id");
             $stmt2->execute(['id' => $no_identitas]);
             $petugas = $stmt2->fetch();
 
@@ -110,7 +110,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
 
             // 4. Cek ke tabel Admin
-            $stmt3 = $pdo->prepare("SELECT * FROM admin WHERE username = :id");
+            $stmt3 = $pdo->prepare("SELECT id_admin, username, password FROM admin WHERE username = :id");
             $stmt3->execute(['id' => $no_identitas]);
             $admin = $stmt3->fetch();
 
@@ -186,7 +186,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <?php endif; ?>
 
         <form method="POST" action="" id="loginForm">
-          <!-- HIDDEN CSRF TOKEN -->
           <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token']) ?>">
 
           <input class="input" type="text" name="nim" id="inputNim" placeholder="Nomor Identitas" autocomplete="username" maxlength="50" value="<?= htmlspecialchars($_POST['nim'] ?? '') ?>" required>
@@ -194,7 +193,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
           <div class="password-wrapper">
               <input class="input" type="password" name="password" id="passwordInput" placeholder="Password" autocomplete="current-password" maxlength="100" required>
               
-              <!-- Ikon Mata dipanggil lewat onclick yang ada di login.js -->
               <span class="toggle-password" onclick="togglePassword()" title="Lihat/Sembunyikan Password">
                   <svg id="eyeIcon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                       <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
@@ -221,7 +219,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </section>
   </div>
 
-  <!-- HANYA MEMANGGIL FILE JS EKSTERNAL -->
   <script src="../assets/js/login.js"></script>
 </body>
 </html>
