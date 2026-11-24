@@ -1,0 +1,17 @@
+{
+  "functions": {
+    "Backend/**/*.php": {
+      "runtime": "vercel-php@0.7.3"
+    }
+  },
+  "routes": [
+    {
+      "src": "/",
+      "dest": "/Backend/index.php"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/Backend/$1"
+    }
+  ]
+}
