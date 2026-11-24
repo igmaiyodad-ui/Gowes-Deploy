@@ -1,20 +1,23 @@
 <?php
-// file: frontend/index.php
+// Mencegah redirect loop dari reverse proxy Railway
+if (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https') {
+    $_SERVER['HTTPS'] = 'on';
+}
+
 session_start();
 
-// Jika user sudah login, arahkan ke dashboard sesuai role
 if (isset($_SESSION['role'])) {
     if ($_SESSION['role'] === 'admin') {
-        header("Location: admin/dashboard.php");
+        header("Location: /admin/dashboard.php");
     } elseif ($_SESSION['role'] === 'petugas') {
-        header("Location: petugas/dashboard.php");
+        header("Location: /petugas/dashboard.php");
     } else {
-        header("Location: mahasiswa/dashboard.php");
+        header("Location: /mahasiswa/dashboard.php");
     }
     exit;
-} else {
-    // Jika belum login, arahkan ke halaman publik (guest)
-    header("Location: public/dashboard.php");
-    exit;
 }
+
+// Arahkan dengan path absolut
+header("Location: /public/dashboard.php", true, 302);
+exit;
 ?>
