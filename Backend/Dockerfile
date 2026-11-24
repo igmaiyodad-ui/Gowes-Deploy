@@ -1,5 +1,10 @@
-FROM dunglas/frankenphp:php8.4-trixie
+FROM php:8.4-apache
 
-RUN install-php-extensions pdo_pgsql pgsql
+RUN apt-get update && apt-get install -y libpq-dev \
+    && docker-php-ext-install pdo_pgsql pgsql \
+    && a2enmod rewrite \
+    && rm -rf /var/lib/apt/lists/*
 
-COPY . /app/public
+COPY . /var/www/html/
+
+EXPOSE 80
