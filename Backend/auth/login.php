@@ -89,7 +89,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $_SESSION['id_peminjam']    = $peminjam['id_peminjam'];
                 $_SESSION['nama']           = $peminjam['nama']; 
                 $_SESSION['no_identitas']   = $peminjam['no_identitas'];
-                $_SESSION['jenis_peminjam'] = $peminjam['jenis_peminjam'];
                 header("Location: ../mahasiswa/peminjaman.php"); 
                 exit;
             }
