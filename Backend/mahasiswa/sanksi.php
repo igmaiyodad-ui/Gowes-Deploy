@@ -60,7 +60,7 @@ if ($sanksi_terakhir) {
 
   <main class="page">
     <div class="col sanksi-container">
-      <a class="back d-only" href="profil.php" style="margin-bottom: 10px;">‹ Kembali ke Profil</a>
+      <a class="back" href="profil.php" style="display: inline-flex; align-items: center; margin-bottom: 12px;">‹ Kembali ke Profil</a>
       <h1 class="title" style="margin-bottom: 20px;"><span class="m">Status sanksi</span><span class="d">Status Sanksi</span></h1>
 
       <section class="status-card">
