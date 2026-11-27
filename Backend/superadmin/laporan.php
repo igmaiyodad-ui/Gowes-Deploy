@@ -89,50 +89,61 @@ function formatTanggalIndo($dateString) {
   <link rel="stylesheet" href="../assets/css/panel.css">
 
   <style>
-    .panel-head {
-        display: flex;
-        justify-content: space-between;
+    .date-btn-wrap {
+        position: relative;
+        display: inline-flex;
         align-items: center;
-        flex-wrap: wrap;
-        gap: 15px;
-    }
-    .search-bar {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        flex-wrap: wrap;
-    }
-    .search-bar input {
-        height: 38px;
-        border: 1px solid #e2e8f0;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+        background: #fff;
+        border: 1.5px solid var(--primary);
         border-radius: 8px;
-        padding: 0 16px;
-        font-family: inherit;
-        font-size: 13px;
-        outline: none;
-        background: #f8fafc;
-        color: #334155;
+        color: var(--primary);
+        cursor: pointer;
+        flex-shrink: 0;
         transition: all 0.2s;
     }
-    .search-bar input:focus {
-        border-color: var(--primary);
-        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
-        background: #fff;
-    }
-    .search-bar button {
+    .date-btn-wrap:hover,
+    .date-btn-wrap.has-date {
         background: var(--primary);
-        color: white;
-        border: none;
-        height: 38px;
-        padding: 0 20px;
-        border-radius: 8px;
-        font-weight: 600;
-        font-size: 13px;
-        cursor: pointer;
-        transition: opacity 0.2s;
+        color: #fff;
     }
-    .search-bar button:hover {
-        opacity: 0.9;
+    .date-btn-wrap input[type="date"] {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        opacity: 0;
+        cursor: pointer;
+    }
+    .date-btn-wrap input[type="date"]::-webkit-calendar-picker-indicator {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        cursor: pointer;
+    }
+    @media (max-width: 768px) {
+        .panel-head-tools {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 12px;
+        }
+        .toolbar-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            width: 100%;
+        }
+        .toolbar-group .input-wrapper {
+            flex: 1;
+            display: flex;
+        }
+        .toolbar-group .inp-cari {
+            width: 100%;
+            min-width: 0;
+        }
     }
   </style>
 </head>
@@ -182,13 +193,24 @@ function formatTanggalIndo($dateString) {
       </header>
 
       <section class="panel">
-        <div class="panel-head">
+        <div class="panel-head-tools">
           <h2>Laporan Terbaru</h2>
           
-          <form method="GET" action="" class="search-bar">
-            <input type="date" name="date" value="<?= htmlspecialchars($filter_date) ?>" onchange="this.form.submit()" title="Filter tanggal">
-            <input type="search" name="search" placeholder="Cari Unit / NIM..." value="<?= htmlspecialchars($search) ?>">
-            <button type="submit">Cari</button>
+          <form method="GET" action="" class="toolbar-group">
+            <label class="date-btn-wrap <?= !empty($filter_date) ? 'has-date' : '' ?>" title="<?= !empty($filter_date) ? 'Tanggal: ' . htmlspecialchars($filter_date) : 'Filter tanggal' ?>">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                </svg>
+                <input type="date" name="date" id="dateFilterLaporan" value="<?= htmlspecialchars($filter_date) ?>" onchange="this.form.submit()" onclick="try{this.showPicker()}catch(e){}">
+            </label>
+
+            <div class="input-wrapper">
+                <input type="search" name="search" class="inp-cari" placeholder="Cari Unit / NIM..." value="<?= htmlspecialchars($search) ?>">
+                <button type="submit" class="btn-cari">Cari</button>
+            </div>
           </form>
         </div>
 
