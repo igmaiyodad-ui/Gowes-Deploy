@@ -22,7 +22,6 @@ $where_clause = "";
 $params = [];
 
 if (!empty($search)) {
-    // ILIKE digunakan untuk PostgreSQL (case-insensitive)
     $where_clause = " AND (pm.no_identitas ILIKE :search OR s.kode_qr ILIKE :search)";
     $params['search'] = "%$search%";
 }
@@ -57,16 +56,19 @@ $peminjaman = $stmt->fetchAll();
   <link rel="stylesheet" href="../assets/css/components.css">
   <link rel="stylesheet" href="../assets/css/panel.css">
   
-  <!-- CUSTOM CSS UNTUK SEARCH & TABEL (Dari kode Anda) -->
   <style>
     .search-row { display: flex; align-items: center; gap: 12px; }
     .search-row form { display: flex; flex: 1; gap: 8px; }
-    .search-row .inp { flex: 1; height: 38px; border: 0; border-radius: 8px; background: #f4f5f7; padding: 0 16px; font-family: inherit; font-size: 13px; outline: none; }
+    .search-row .inp { flex: 1; height: 38px; border: 0; border-radius: 8px; background: #f4f5f7; padding: 0 16px; font-family: inherit; font-size: 13px; outline: none; min-width: 0; }
     .search-row .inp:focus { box-shadow: 0 0 0 2px var(--primary); }
-    .btn-cari { background: var(--primary); color: white; border: none; padding: 0 20px; height: 38px; border-radius: 8px; font-weight: 600; font-size: 13px; cursor: pointer; }
+    .btn-cari { background: var(--primary); color: white; border: none; padding: 0 20px; height: 38px; border-radius: 8px; font-weight: 600; font-size: 13px; cursor: pointer; white-space: nowrap; }
     .tbl tbody tr { transition: background 0.2s; }
     .tbl tbody tr:hover { background-color: #f8fafc; }
     .actions { display: flex; gap: 8px; }
+
+    @media (max-width: 600px) {
+      .search-row { flex-direction: column; align-items: stretch; }
+    }
   </style>
 </head>
 <body class="admin" data-peran="superadmin">
@@ -76,21 +78,27 @@ $peminjaman = $stmt->fetchAll();
     <aside class="sidebar">
       <input type="checkbox" id="nav-toggle" class="nav-toggle" aria-label="Buka atau tutup menu">
 
-      <div>
-        <a class="logo" href="dashboard.php"><img src="../img/logo-white.png" alt="GOWES"></a>
-        <div class="role">Super Admin</div>
+      <div class="sidebar-header">
+        <div>
+          <a class="logo" href="dashboard.php"><img src="../img/logo-white.png" alt="GOWES"></a>
+          <div class="role">Super Admin</div>
+        </div>
+
+        <label class="hamburger" for="nav-toggle" aria-label="Buka menu">
+          <span></span>
+          <span></span>
+          <span></span>
+        </label>
       </div>
 
-      <label class="hamburger" for="nav-toggle" aria-label="Buka menu"><span></span><span></span><span></span></label>
-
       <nav class="menu" aria-label="Menu Super Admin">
-        <a href="dashboard.php" class="">Dashboard</a>
-        <a href="unit.php" class="">Unit Go-bike</a>
+        <a href="dashboard.php">Dashboard</a>
+        <a href="unit.php">Unit Go-bike</a>
         <a href="peminjaman.php" class="on">Peminjaman</a>
-        <a href="sanksi.php" class="">Sanksi</a>
-        <a href="laporan.php" class="">Laporan Kondisi</a>
-        <a href="riwayat.php" class="">Riwayat Peminjaman</a>
-        <a href="tambah-petugas-admin.php" class="">Tambah Petugas/Admin</a>
+        <a href="sanksi.php">Sanksi</a>
+        <a href="laporan.php">Laporan Kondisi</a>
+        <a href="riwayat.php">Riwayat Peminjaman</a>
+        <a href="tambah-petugas-admin.php">Tambah Petugas/Admin</a>
       </nav>
 
       <a class="menu-logout" href="javascript:void(0);" onclick="openLogoutModal()">Keluar</a>
@@ -139,7 +147,6 @@ $peminjaman = $stmt->fetchAll();
                     $jam_mulai = date('H.i', strtotime($row['waktu_mulai']));
                     $jam_batas = date('H.i', strtotime($row['batas_kembali']));
                     
-                    // Cek status keterlambatan dari database atau hitung manual
                     $status = $row['status_keterlambatan'];
                     if (empty($status)) {
                         $status = (strtotime($row['batas_kembali']) < time()) ? 'Terlambat' : 'Aktif';
@@ -158,7 +165,7 @@ $peminjaman = $stmt->fetchAll();
                   </tr>
                 <?php endforeach; ?>
               <?php else: ?>
-                <tr><td colspan="7" style="text-align: center; color: var(--muted); padding: 20px;">Tidak ada peminjaman aktif.</td></tr>
+                <tr><td colspan="6" style="text-align: center; color: var(--muted); padding: 20px;">Tidak ada peminjaman aktif.</td></tr>
               <?php endif; ?>
             </tbody>
           </table>
@@ -167,9 +174,7 @@ $peminjaman = $stmt->fetchAll();
     </main>
   </div>
 
-  <!-- ========================================== -->
-  <!-- MODAL POP-UP LOGOUT                        -->
-  <!-- ========================================== -->
+  <!-- MODAL POP-UP LOGOUT -->
   <div class="modal-overlay" id="logoutModal">
       <div class="modal-content">
           <div class="modal-icon">
@@ -188,8 +193,6 @@ $peminjaman = $stmt->fetchAll();
       </div>
   </div>
 
-  <!-- JAVASCRIPT EKSTERNAL (TANPA LOADER) -->
-  <script src="../assets/js/common.js"></script>
   <script src="../assets/js/countdown.js"></script>
   <script src="../assets/js/logout-modal.js"></script>
 </body>

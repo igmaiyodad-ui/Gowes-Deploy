@@ -56,7 +56,7 @@ if (isset($_GET['konfirmasi_kembali'])) {
         $stmt_cek->execute(['id' => $id_peminjaman]);
         $data = $stmt_cek->fetch();
 
-        if (!$data || $data['id_shelter'] !== $id_shelter_petugas) {
+        if (!$data || (int) $data['id_shelter'] !== $id_shelter_petugas) {
             echo "<script>alert('Akses Ditolak.'); window.location='peminjaman.php';</script>";
             exit;
         }
@@ -154,210 +154,176 @@ if (!$is_admin) {
     <link rel="stylesheet" href="../assets/css/components.css">
     <link rel="stylesheet" href="../assets/css/panel.css">
     <style>
-        body { background-color: #f8fafc; }
-        .main { padding: 24px 32px; }
-        .page-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; }
-        .page-header h1 { font-size: 22px; font-weight: 700; color: #1e293b; margin: 0 0 6px 0; }
-        .page-header p { color: #64748b; font-size: 13px; margin: 0; }
-        .role-badge { background: #e0e7ff; color: #4338ca; padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; white-space: nowrap; }
-        .search-card { display: flex; align-items: center; justify-content: space-between; background: #ffffff; padding: 16px 20px; border-radius: 10px; margin-bottom: 20px; border: 1px solid #e2e8f0; }
-        .search-card h2 { font-size: 15px; font-weight: 700; color: #1e293b; margin: 0; }
-        .search-form { display: flex; align-items: center; gap: 10px; width: 100%; max-width: 550px; }
-        .search-input-wrapper { position: relative; flex-grow: 1; }
-        .search-input-wrapper input { width: 100%; height: 38px; padding: 0 12px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 13px; }
-        .btn-search { background: #4f46e5; color: white; border: none; height: 38px; padding: 0 20px; border-radius: 6px; font-weight: 600; cursor: pointer; }
-        .table-card { background: #ffffff; border-radius: 10px; border: 1px solid #e2e8f0; overflow: hidden; }
-        .table-card-header { padding: 16px 20px; border-bottom: 1px solid #f1f5f9; }
-        .table-card-header h3 { font-size: 15px; font-weight: 700; margin: 0; }
-        .tbl-modern { width: 100%; table-layout: fixed; border-collapse: collapse; text-align: left; }
-        .tbl-modern th { background: #ffffff; padding: 12px 16px; font-size: 12px; font-weight: 600; color: #64748b; border-bottom: 1px solid #f1f5f9; }
-        .tbl-modern td { padding: 12px 16px; font-size: 13px; color: #334155; border-bottom: 1px solid #f1f5f9; }
-        .badge { display: inline-flex; align-items: center; padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
-        .badge-active { background: #dcfce7; color: #15803d; }
-        .badge-warning { background: #fef08a; color: #854d0e; }
-        .badge-danger { background: #fee2e2; color: #b91c1c; }
-        .badge-info { background: #e0e7ff; color: #4338ca; }
+        .qr-tag { background: #e0e7ff; color: #4338ca; padding: 4px 10px; border-radius: 6px; font-weight: 700; font-size: 12px; display: inline-block; }
         .time-normal { color: #4f46e5; font-weight: 600; }
         .time-late { color: #dc2626; font-weight: 600; font-size: 12px; }
         .time-waiting { color: #64748b; font-style: italic; font-size: 12px; }
         .action-group { display: flex; flex-direction: row; gap: 6px; justify-content: flex-end; }
-        .btn-action { padding: 6px 10px; border-radius: 6px; font-size: 11px; font-weight: 600; text-decoration: none; border: none; cursor: pointer; }
-        .btn-primary { background: #4f46e5; color: white; }
-        .btn-outline { background: transparent; color: #4f46e5; border: 1px solid #4f46e5; }
+        .btn-action { padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 600; text-decoration: none; border: none; cursor: pointer; white-space: nowrap; transition: 0.2s; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { filter: brightness(1.08); }
+        .btn-outline { background: transparent; color: var(--primary); border: 1.5px solid var(--primary); }
+        .btn-outline:hover { background: var(--tint); }
         .btn-disabled { background: #f1f5f9; color: #94a3b8; border: 1px solid #e2e8f0; cursor: not-allowed; pointer-events: none; }
 
         /* ========================================= */
-        /* CSS MODAL LOGOUT (SESUAI SCREENSHOT)      */
+        /* RESPONSIVE MOBILE                         */
         /* ========================================= */
-        .modal-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(15, 23, 42, 0.6); 
-            display: none; align-items: center; justify-content: center; z-index: 9999;
-            backdrop-filter: blur(3px); 
+        @media (max-width: 768px) {
+            .main { padding: 16px !important; }
+            .topbar-a { flex-direction: column; align-items: flex-start; gap: 10px; }
+            .topbar-a h1 { font-size: 22px; line-height: 1.25; }
+            .panel { padding: 16px; margin-top: 16px; }
+            .panel-head-tools { flex-direction: column; align-items: stretch; gap: 12px; }
+            .panel-head-tools .input-wrapper { width: 100%; height: 42px; }
+            .panel-head-tools .inp-cari { flex: 1; min-width: 0; font-size: 14px; }
+            .panel-head-tools .btn-cari { height: 100%; padding: 0 18px; }
+            .tbl { min-width: 760px; }
         }
-        .modal-overlay.active { display: flex; }
-        
-        .modal-content {
-            background: #fff; padding: 32px 24px; border-radius: 20px; width: 90%; max-width: 420px;
-            text-align: center; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
-            animation: modalFadeIn 0.2s ease-out;
-        }
-        @keyframes modalFadeIn {
-            from { opacity: 0; transform: scale(0.95); }
-            to { opacity: 1; transform: scale(1); }
-        }
-
-        .modal-icon-wrapper {
-            width: 64px; height: 64px; background: #fee2e2; border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            margin: 0 auto 20px;
-        }
-        .modal-icon-wrapper svg { width: 32px; height: 32px; color: #ef4444; }
-
-        .modal-title { font-size: 20px; font-weight: 700; color: #1e293b; margin: 0 0 12px 0; }
-        .modal-desc { font-size: 14px; color: #64748b; line-height: 1.6; margin: 0 0 24px 0; padding: 0 10px; }
-
-        .modal-actions { display: flex; gap: 12px; }
-        
-        .btn-cancel {
-            flex: 1; padding: 12px; border-radius: 10px; border: 1px solid #cbd5e1;
-            background: #ffffff; color: #475569; font-size: 14px; font-weight: 600;
-            cursor: pointer; transition: 0.2s;
-        }
-        .btn-cancel:hover { background: #f8fafc; }
-
-        .btn-confirm {
-            flex: 1; padding: 12px; border-radius: 10px; border: none;
-            background: #ef4444; color: white; font-size: 14px; font-weight: 600;
-            text-decoration: none; display: flex; align-items: center; justify-content: center;
-            cursor: pointer; transition: 0.2s;
-        }
-        .btn-confirm:hover { background: #dc2626; }
     </style>
 </head>
 <body class="admin" data-peran="petugas">
     <div class="admin-shell">
         <aside class="sidebar">
-            <div class="sidebar-header"><div><a class="logo" href="dashboard.php"><img src="../img/logo-white.png" alt="GOWES"></a><div class="role">Petugas / Satpam</div></div></div>
-            <nav class="menu">
+            <input type="checkbox" id="nav-toggle" class="nav-toggle" aria-label="Buka atau tutup menu">
+            <div class="sidebar-header">
+                <div>
+                    <a class="logo" href="dashboard.php"><img src="../img/logo-white.png" alt="GOWES"></a>
+                    <div class="role">Petugas / Satpam</div>
+                </div>
+                <label class="hamburger" for="nav-toggle" aria-label="Buka menu">
+                    <span></span><span></span><span></span>
+                </label>
+            </div>
+            <nav class="menu" aria-label="Menu Petugas / Satpam">
                 <a href="dashboard.php">Dashboard</a>
                 <a href="unit.php">Unit Go-bike</a>
                 <a href="peminjaman.php" class="on">Peminjaman</a>
                 <a href="laporan.php">Laporan Kondisi</a>
                 <a href="riwayat.php">Riwayat Peminjaman</a>
             </nav>
-            <!-- TOMBOL LOGOUT MEMANGGIL MODAL -->
             <a class="menu-logout" href="javascript:void(0);" onclick="openLogoutModal()">Keluar</a>
         </aside>
 
         <main class="main">
-            <header class="page-header">
-                <div><h1>Peminjaman</h1><p>Verifikasi bukti digital dan konfirmasi pengembalian</p></div>
-                <span class="role-badge"><?= $is_admin ? 'Admin' : 'Petugas - ' . htmlspecialchars($nama_shelter_petugas) ?></span>
+            <header class="topbar-a">
+                <div>
+                    <h1>Peminjaman</h1>
+                    <p>Verifikasi bukti digital dan konfirmasi pengembalian</p>
+                </div>
+                <span class="pill"><?= $is_admin ? 'Admin' : 'Petugas - ' . htmlspecialchars($nama_shelter_petugas) ?></span>
             </header>
 
-            <div class="search-card">
-                <h2>Verifikasi Bukti</h2>
-                <form method="GET" action="" class="search-form">
-                    <div class="search-input-wrapper">
-                        <input type="search" name="cari" placeholder="Cari Nomor Identitas atau ID Go-bike" value="<?= htmlspecialchars($search) ?>">
-                    </div>
-                    <button type="submit" class="btn-search">Cari</button>
-                </form>
-            </div>
+            <!-- PANEL CARI -->
+            <section class="panel">
+                <div class="panel-head-tools" style="margin-bottom: 0;">
+                    <h2>Verifikasi Bukti</h2>
+                    <form method="GET" action="" class="input-wrapper">
+                        <input type="search" name="cari" class="inp-cari" placeholder="Cari No. Identitas / ID Go-bike" value="<?= htmlspecialchars($search) ?>">
+                        <button type="submit" class="btn-cari">Cari</button>
+                    </form>
+                </div>
+            </section>
 
-            <div class="table-card">
-                <div class="table-card-header"><h3>Peminjaman Aktif</h3></div>
-                <div class="table-responsive">
-                    <table class="tbl-modern">
+            <!-- PANEL TABEL -->
+            <section class="panel">
+                <div class="panel-head"><h2>Peminjaman Aktif</h2></div>
+                <div class="table-wrap">
+                    <table class="tbl">
                         <thead>
-                            <tr><th>Nomor Identitas</th><th>Unit</th><th>Mulai</th><th>Batas</th><th>Sisa waktu</th><th>Status</th><th style="text-align: right;">Aksi</th></tr>
+                            <tr>
+                                <th>Nomor Identitas</th>
+                                <th>Unit</th>
+                                <th>Mulai</th>
+                                <th>Batas</th>
+                                <th>Sisa waktu</th>
+                                <th>Status</th>
+                                <th style="text-align: right;">Aksi</th>
+                            </tr>
                         </thead>
                         <tbody>
                             <?php if (count($peminjaman) > 0): ?>
-                                    <?php foreach ($peminjaman as $row): ?>
-                                            <?php
-                                            $status_db = $row['status_peminjaman'] ?? 'Menunggu';
-                                            $is_menunggu_pinjam = ($status_db === 'Menunggu');
-                                            $is_menunggu_kembali = ($status_db === 'Menunggu Kembali');
-                                            $jam_mulai = date('H.i', strtotime($row['waktu_mulai']));
-                                            $jam_batas = date('H.i', strtotime($row['batas_kembali']));
+                                <?php foreach ($peminjaman as $row): ?>
+                                    <?php
+                                    $status_db = $row['status_peminjaman'] ?? 'Menunggu';
+                                    $is_menunggu_pinjam = ($status_db === 'Menunggu');
+                                    $is_menunggu_kembali = ($status_db === 'Menunggu Kembali');
+                                    $jam_mulai = date('H.i', strtotime($row['waktu_mulai']));
+                                    $jam_batas = date('H.i', strtotime($row['batas_kembali']));
 
-                                            $now = time();
-                                            $batas_time = strtotime($row['batas_kembali']);
-                                            $selisih = $batas_time - $now;
+                                    $now = time();
+                                    $batas_time = strtotime($row['batas_kembali']);
+                                    $selisih = $batas_time - $now;
 
-                                            if ($is_menunggu_pinjam) {
-                                                $chip_class = 'badge-info';
-                                                $chip_text = 'Menunggu Pinjam';
-                                                $sisa_waktu_text = '<span class="time-waiting">Belum dimulai</span>';
-                                            } elseif ($is_menunggu_kembali) {
-                                                $chip_class = 'badge-info';
-                                                $chip_text = 'Menunggu Kembali';
-                                                $sisa_waktu_text = '<span class="time-waiting">Menunggu ACC</span>';
-                                            } elseif ($selisih < 0) {
-                                                $chip_class = 'badge-danger';
-                                                $chip_text = 'Terlambat';
-                                                $diff = abs($selisih);
-                                                $sisa_waktu_text = '<span class="time-late">Lewat ' . sprintf("%02d:%02d:%02d", floor($diff / 3600), floor(($diff % 3600) / 60), $diff % 60) . '</span>';
-                                            } elseif ($selisih > 0 && $selisih < 1800) {
-                                                $chip_class = 'badge-warning';
-                                                $chip_text = 'Mendekati batas';
-                                                $sisa_waktu_text = '<span class="countdown time-normal" data-target="' . date('Y-m-d\TH:i:s', $batas_time) . '">...</span>';
-                                            } else {
-                                                $chip_class = 'badge-active';
-                                                $chip_text = 'Dipinjam';
-                                                $sisa_waktu_text = '<span class="countdown time-normal" data-target="' . date('Y-m-d\TH:i:s', $batas_time) . '">...</span>';
-                                            }
-                                            ?>
-                                            <tr>
-                                                <td style="font-weight: 600;"><?= htmlspecialchars($row['no_identitas']) ?></td>
-                                                <td><span style="background: #e0e7ff; color: #4338ca; padding: 4px 8px; border-radius: 4px; font-weight: 700; font-size: 11px;"><?= htmlspecialchars($row['kode_qr']) ?></span></td>
-                                                <td><?= $jam_mulai ?></td>
-                                                <td><?= $jam_batas ?></td>
-                                                <td><?= $sisa_waktu_text ?></td>
-                                                <td><span class="badge <?= $chip_class ?>"><?= $chip_text ?></span></td>
-                                                <td>
-                                                    <div class="action-group">
-                                                        <?php if ($is_menunggu_pinjam && !$is_admin): ?>
-                                                                <a class="btn-action btn-primary" href="?konfirmasi_pinjam=<?= $row['id_peminjaman'] ?>" onclick="return confirm('Serahkan sepeda?')">Konfirmasi Pinjam</a>
-                                                        <?php else: ?>
-                                                                <span class="btn-action btn-disabled">Konfirmasi Pinjam</span>
-                                                        <?php endif; ?>
+                                    if ($is_menunggu_pinjam) {
+                                        $chip_class = 'chip-info';
+                                        $chip_text = 'Menunggu Pinjam';
+                                        $sisa_waktu_text = '<span class="time-waiting">Belum dimulai</span>';
+                                    } elseif ($is_menunggu_kembali) {
+                                        $chip_class = 'chip-info';
+                                        $chip_text = 'Menunggu Kembali';
+                                        $sisa_waktu_text = '<span class="time-waiting">Menunggu ACC</span>';
+                                    } elseif ($selisih < 0) {
+                                        $chip_class = 'chip-bad';
+                                        $chip_text = 'Terlambat';
+                                        $diff = abs($selisih);
+                                        $sisa_waktu_text = '<span class="time-late">Lewat ' . sprintf("%02d:%02d:%02d", floor($diff / 3600), floor(($diff % 3600) / 60), $diff % 60) . '</span>';
+                                    } elseif ($selisih > 0 && $selisih < 1800) {
+                                        $chip_class = 'chip-warn';
+                                        $chip_text = 'Mendekati batas';
+                                        $sisa_waktu_text = '<span class="countdown time-normal" data-target="' . date('Y-m-d\TH:i:s', $batas_time) . '">...</span>';
+                                    } else {
+                                        $chip_class = 'chip-ok';
+                                        $chip_text = 'Dipinjam';
+                                        $sisa_waktu_text = '<span class="countdown time-normal" data-target="' . date('Y-m-d\TH:i:s', $batas_time) . '">...</span>';
+                                    }
+                                    ?>
+                                    <tr>
+                                        <td style="font-weight: 600;"><?= htmlspecialchars($row['no_identitas']) ?></td>
+                                        <td><span class="qr-tag"><?= htmlspecialchars($row['kode_qr']) ?></span></td>
+                                        <td><?= $jam_mulai ?></td>
+                                        <td><?= $jam_batas ?></td>
+                                        <td><?= $sisa_waktu_text ?></td>
+                                        <td><span class="chip <?= $chip_class ?>"><?= $chip_text ?></span></td>
+                                        <td>
+                                            <div class="action-group">
+                                                <?php if ($is_menunggu_pinjam && !$is_admin): ?>
+                                                    <a class="btn-action btn-primary" href="?konfirmasi_pinjam=<?= $row['id_peminjaman'] ?>" onclick="return confirm('Serahkan sepeda?')">Konfirmasi Pinjam</a>
+                                                <?php else: ?>
+                                                    <span class="btn-action btn-disabled">Konfirmasi Pinjam</span>
+                                                <?php endif; ?>
 
-                                                        <?php if ($is_menunggu_kembali && !$is_admin): ?>
-                                                                <a class="btn-action btn-outline" href="?konfirmasi_kembali=<?= $row['id_peminjaman'] ?>" onclick="return confirm('ACC pengembalian sepeda ini?')">Konfirmasi Kembali</a>
-                                                        <?php else: ?>
-                                                                <span class="btn-action btn-disabled">Konfirmasi Kembali</span>
-                                                        <?php endif; ?>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                    <?php endforeach; ?>
+                                                <?php if ($is_menunggu_kembali && !$is_admin): ?>
+                                                    <a class="btn-action btn-outline" href="?konfirmasi_kembali=<?= $row['id_peminjaman'] ?>" onclick="return confirm('ACC pengembalian sepeda ini?')">Konfirmasi Kembali</a>
+                                                <?php else: ?>
+                                                    <span class="btn-action btn-disabled">Konfirmasi Kembali</span>
+                                                <?php endif; ?>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
                             <?php else: ?>
-                                    <tr><td colspan="7" style="text-align: center; padding: 40px; color: #94a3b8;">Tidak ada data peminjaman aktif.</td></tr>
+                                <tr><td colspan="7" style="text-align: center; padding: 36px; color: var(--muted);">Tidak ada data peminjaman aktif.</td></tr>
                             <?php endif; ?>
                         </tbody>
                     </table>
                 </div>
-            </div>
+            </section>
         </main>
     </div>
 
-    <!-- ============================================== -->
-    <!-- MODAL LOGOUT (SESUAI SCREENSHOT)               -->
-    <!-- ============================================== -->
+    <!-- MODAL LOGOUT -->
     <div class="modal-overlay" id="logoutModal">
         <div class="modal-content">
-            <div class="modal-icon-wrapper">
+            <div class="modal-icon">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
                     <polyline points="16 17 21 12 16 7"></polyline>
                     <line x1="21" y1="12" x2="9" y2="12"></line>
                 </svg>
             </div>
-            <h2 class="modal-title">Konfirmasi Keluar</h2>
-            <p class="modal-desc">Apakah Anda yakin ingin keluar dari akun ini? Anda harus login kembali untuk mengakses halaman petugas.</p>
+            <h2>Konfirmasi Keluar</h2>
+            <p>Apakah Anda yakin ingin keluar dari akun ini? Anda harus login kembali untuk mengakses halaman petugas.</p>
             <div class="modal-actions">
                 <button type="button" class="btn-cancel" onclick="closeLogoutModal()">Batal</button>
                 <a href="../auth/login.php?logout=true" class="btn-confirm">Ya, Keluar</a>
@@ -365,10 +331,8 @@ if (!$is_admin) {
         </div>
     </div>
 
-    <!-- JAVASCRIPT -->
     <script src="../assets/js/countdown.js"></script>
     <script>
-        // Script untuk membuka dan menutup modal logout
         function openLogoutModal() {
             document.getElementById('logoutModal').classList.add('active');
         }

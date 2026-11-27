@@ -37,15 +37,22 @@ try {
     exit;
   }
 
-  $stmt_ptg = $pdo->prepare("SELECT id_petugas FROM peminjaman WHERE id_peminjaman = :id");
-  $stmt_ptg->execute([':id' => $id_peminjaman]);
-  $id_petugas = $stmt_ptg->fetchColumn();
+  // Pastikan peminjaman ini milik user, sudah 'Selesai', dan belum pernah dilaporkan
+  // (laporan_kondisi.id_peminjaman bersifat UNIQUE)
+  $stmt_cek = $pdo->prepare("
+        SELECT 1
+        FROM peminjaman p
+        LEFT JOIN laporan_kondisi lk ON p.id_peminjaman = lk.id_peminjaman
+        WHERE p.id_peminjaman = :id
+          AND p.id_peminjam = :user
+          AND p.status_peminjaman = 'Selesai'
+          AND lk.id_laporankondisi IS NULL
+    ");
+  $stmt_cek->execute([':id' => $id_peminjaman, ':user' => $id_peminjam]);
 
-  if (!$id_petugas) {
-    $id_petugas = $pdo->query("SELECT id_petugas FROM petugas LIMIT 1")->fetchColumn();
-  }
-  if (!$id_petugas) {
-    $id_petugas = 1;
+  if (!$stmt_cek->fetchColumn()) {
+    echo "<script>alert('Laporan tidak tersedia atau sudah pernah dikirim.'); window.location.href='peminjaman.php';</script>";
+    exit;
   }
 
 } catch (PDOException $e) {
@@ -56,34 +63,42 @@ try {
 // 2. PROSES KIRIM LAPORAN (POST)
 // ==========================================
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-  $nilai_ban = (int) $_POST['nilai_ban'];
-  $nilai_rem = (int) $_POST['nilai_rem'];
-  $nilai_rantai = (int) $_POST['nilai_rantai'];
-  $nilai_rangka_bodi = (int) $_POST['nilai_rangka_bodi'];
-  $keterangan = trim($_POST['keterangan']);
-  $tgl_lapor = date('Y-m-d');
+  $nilai_ban         = (int) ($_POST['nilai_ban'] ?? 0);
+  $nilai_rem         = (int) ($_POST['nilai_rem'] ?? 0);
+  $nilai_rantai      = (int) ($_POST['nilai_rantai'] ?? 0);
+  $nilai_rangka_bodi = (int) ($_POST['nilai_rangka_bodi'] ?? 0);
+  $keterangan        = trim($_POST['keterangan'] ?? '');
+  $tgl_lapor         = date('Y-m-d');
 
-  try {
-    $sql = "INSERT INTO laporan_kondisi 
-                (id_peminjaman, id_petugas, nilai_ban, nilai_rem, nilai_rantai, nilai_rangka_bodi, keterangan, tgl_lapor) 
-                VALUES (:id_peminjaman, :id_petugas, :ban, :rem, :rantai, :rangka, :keterangan, :tgl)";
+  $semua_nilai = [$nilai_ban, $nilai_rem, $nilai_rantai, $nilai_rangka_bodi];
 
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute([
-      ':id_peminjaman' => $id_peminjaman,
-      ':id_petugas' => $id_petugas,
-      ':ban' => $nilai_ban,
-      ':rem' => $nilai_rem,
-      ':rantai' => $nilai_rantai,
-      ':rangka' => $nilai_rangka_bodi,
-      ':keterangan' => $keterangan,
-      ':tgl' => $tgl_lapor
-    ]);
+  if (min($semua_nilai) < 1 || max($semua_nilai) > 5) {
+    $error = "Semua nilai harus diisi dengan angka 1 sampai 5.";
+  } elseif (mb_strlen($keterangan) > 255) {
+    $error = "Keterangan maksimal 255 karakter.";
+  } else {
+    try {
+      // Kolom sesuai tabel laporan_kondisi (tanpa id_petugas)
+      $sql = "INSERT INTO laporan_kondisi
+                  (id_peminjaman, nilai_ban, nilai_rem, nilai_rantai, nilai_rangka_bodi, keterangan, tgl_lapor)
+              VALUES (:id_peminjaman, :ban, :rem, :rantai, :rangka, :keterangan, :tgl)";
 
-    echo "<script>alert('Laporan kondisi berhasil dikirim! Terima kasih.'); window.location.href='peminjaman.php';</script>";
-    exit;
-  } catch (PDOException $e) {
-    $error = "Gagal mengirim laporan: " . $e->getMessage();
+      $stmt = $pdo->prepare($sql);
+      $stmt->execute([
+        ':id_peminjaman' => $id_peminjaman,
+        ':ban'           => $nilai_ban,
+        ':rem'           => $nilai_rem,
+        ':rantai'        => $nilai_rantai,
+        ':rangka'        => $nilai_rangka_bodi,
+        ':keterangan'    => $keterangan,
+        ':tgl'           => $tgl_lapor
+      ]);
+
+      echo "<script>alert('Laporan kondisi berhasil dikirim! Terima kasih.'); window.location.href='peminjaman.php';</script>";
+      exit;
+    } catch (PDOException $e) {
+      $error = "Gagal mengirim laporan: " . $e->getMessage();
+    }
   }
 }
 ?>

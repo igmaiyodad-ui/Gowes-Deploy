@@ -18,7 +18,6 @@ $nama_admin = isset($_SESSION['nama']) ? $_SESSION['nama'] : 'Super Admin';
 // 2. AMBIL DATA UNIT SEPEDA
 // ==========================================
 try {
-    // PERBAIKAN: Menghapus sp.catatan_perawatan dari query
     $sql = "SELECT 
                 sp.kode_qr, 
                 sh.nama_shelter, 
@@ -59,24 +58,30 @@ try {
     <aside class="sidebar">
       <input type="checkbox" id="nav-toggle" class="nav-toggle" aria-label="Buka atau tutup menu">
 
-      <div>
-        <a class="logo" href="dashboard.php"><img src="../img/logo-white.png" alt="GOWES"></a>
-        <div class="role">Super Admin</div>
+      <div class="sidebar-header">
+        <div>
+          <a class="logo" href="dashboard.php"><img src="../img/logo-white.png" alt="GOWES"></a>
+          <div class="role">Super Admin</div>
+        </div>
+
+        <label class="hamburger" for="nav-toggle" aria-label="Buka menu">
+          <span></span>
+          <span></span>
+          <span></span>
+        </label>
       </div>
 
-      <label class="hamburger" for="nav-toggle" aria-label="Buka menu"><span></span><span></span><span></span></label>
-
       <nav class="menu" aria-label="Menu Super Admin">
-        <a href="dashboard.php" class="">Dashboard</a>
+        <a href="dashboard.php">Dashboard</a>
         <a href="unit.php" class="on">Unit Go-bike</a>
-        <a href="peminjaman.php" class="">Peminjaman</a>
-        <a href="sanksi.php" class="">Sanksi</a>
-        <a href="laporan.php" class="">Laporan Kondisi</a>
-        <a href="riwayat.php" class="">Riwayat Peminjaman</a>
-        <a href="tambah-petugas-admin.php" class="">Tambah Petugas/Admin</a>
+        <a href="peminjaman.php">Peminjaman</a>
+        <a href="sanksi.php">Sanksi</a>
+        <a href="laporan.php">Laporan Kondisi</a>
+        <a href="riwayat.php">Riwayat Peminjaman</a>
+        <a href="tambah-petugas-admin.php">Tambah Petugas/Admin</a>
       </nav>
 
-      <a class="menu-logout" href="../auth/login.php?logout=true">Keluar</a>
+      <a class="menu-logout" href="javascript:void(0);" onclick="openLogoutModal()">Keluar</a>
     </aside>
 
     <!-- ===== KONTEN UTAMA ===== -->
@@ -100,7 +105,6 @@ try {
                 <th>ID Go-bike</th>
                 <th>Shelter</th>
                 <th>Status</th>
-                <!-- Kolom kondisi terakhir tetap ditampilkan statis -->
                 <th>Kondisi terakhir</th>
               </tr>
             </thead>
@@ -111,10 +115,9 @@ try {
                         <td><?= htmlspecialchars($unit['kode_qr']) ?></td>
                         <td><?= htmlspecialchars($unit['nama_shelter']) ?></td>
                         
-                        <!-- Logika Penentuan Warna Status -->
                         <?php 
                             $status = $unit['status_ketersediaan'];
-                            $chip_class = 'chip-ok'; // Default Tersedia
+                            $chip_class = 'chip-ok';
                             
                             if ($status === 'Dipinjam') {
                                 $chip_class = 'chip-info';
@@ -123,8 +126,6 @@ try {
                             }
                         ?>
                         <td><span class="chip <?= $chip_class ?>"><?= htmlspecialchars($status) ?></span></td>
-                        
-                        <!-- PERBAIKAN: Karena kolom tidak ada, kita isi statis "Baik" atau "-" -->
                         <td>Baik</td>
                       </tr>
                   <?php endforeach; ?>
@@ -143,9 +144,34 @@ try {
     </main>
   </div>
 
-  <script src="../assets/js/common.js"></script>
+  <!-- MODAL POP-UP LOGOUT -->
+  <div class="modal-overlay" id="logoutModal">
+      <div class="modal-content">
+          <div class="modal-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                  <polyline points="16 17 21 12 16 7"></polyline>
+                  <line x1="21" y1="12" x2="9" y2="12"></line>
+              </svg>
+          </div>
+          <h2>Konfirmasi Keluar</h2>
+          <p>Apakah Anda yakin ingin keluar dari akun ini? Anda harus login kembali untuk mengakses halaman superadmin.</p>
+          <div class="modal-actions">
+              <button type="button" class="btn-cancel" onclick="closeLogoutModal()">Batal</button>
+              <a href="../auth/login.php?logout=true" class="btn-confirm">Ya, Keluar</a>
+          </div>
+      </div>
+  </div>
+
+  <script>
+      function openLogoutModal() {
+          document.getElementById('logoutModal').classList.add('active');
+      }
+      function closeLogoutModal() {
+          document.getElementById('logoutModal').classList.remove('active');
+      }
+  </script>
   <script src="../assets/js/tabel.js"></script>
-  <script src="../assets/js/modal.js"></script>
 </body>
 
 </html>

@@ -7,7 +7,7 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'petugas') {
   exit;
 }
 
-// 2. PERBAIKAN PATH KONEKSI
+// 2. Koneksi Database
 require_once '../config/koneksi.php';
 
 // 3. Logika Filter Pencarian & Tanggal
@@ -62,125 +62,112 @@ $bulan_indo = [1 => 'Jan', 2 => 'Feb', 3 => 'Mar', 4 => 'Apr', 5 => 'Mei', 6 => 
   <link rel="stylesheet" href="../assets/css/loader.css">
 
   <style>
-    /* ========================================= */
-    /* CSS MODAL LOGOUT (SESUAI SCREENSHOT)      */
-    /* ========================================= */
-    .modal-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
+    /* Tombol Ikon Kalender Saja */
+    .calendar-btn-wrap {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      background: #fff;
+      border: 1.5px solid var(--primary);
+      border-radius: 8px;
+      color: var(--primary);
+      cursor: pointer;
+      flex: 0 0 auto;
+      transition: background 0.2s, color 0.2s;
+    }
+
+    .calendar-btn-wrap:hover,
+    .calendar-btn-wrap.has-date {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    .calendar-btn-wrap svg {
+      width: 17px;
+      height: 17px;
+      pointer-events: none;
+    }
+
+    .calendar-btn-wrap input[type="date"] {
+      position: absolute;
+      inset: 0;
       width: 100%;
       height: 100%;
-      background: rgba(15, 23, 42, 0.6);
-      /* Latar belakang gelap transparan */
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 9999;
-      backdrop-filter: blur(3px);
-      /* Efek blur latar belakang */
-    }
-
-    .modal-overlay.active {
-      display: flex;
-    }
-
-    .modal-content {
-      background: #fff;
-      padding: 32px 24px;
-      border-radius: 20px;
-      width: 90%;
-      max-width: 420px;
-      text-align: center;
-      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
-      animation: modalFadeIn 0.2s ease-out;
-    }
-
-    @keyframes modalFadeIn {
-      from {
-        opacity: 0;
-        transform: scale(0.95);
-      }
-
-      to {
-        opacity: 1;
-        transform: scale(1);
-      }
-    }
-
-    .modal-icon-wrapper {
-      width: 64px;
-      height: 64px;
-      background: #fee2e2;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin: 0 auto 20px;
-    }
-
-    .modal-icon-wrapper svg {
-      width: 32px;
-      height: 32px;
-      color: #ef4444;
-    }
-
-    .modal-title {
-      font-size: 20px;
-      font-weight: 700;
-      color: #1e293b;
-      margin: 0 0 12px 0;
-    }
-
-    .modal-desc {
-      font-size: 14px;
-      color: #64748b;
-      line-height: 1.6;
-      margin: 0 0 24px 0;
-      padding: 0 10px;
-    }
-
-    .modal-actions {
-      display: flex;
-      gap: 12px;
-    }
-
-    .btn-cancel {
-      flex: 1;
-      padding: 12px;
-      border-radius: 10px;
-      border: 1px solid #cbd5e1;
-      background: #ffffff;
-      color: #475569;
-      font-size: 14px;
-      font-weight: 600;
+      opacity: 0;
       cursor: pointer;
-      transition: 0.2s;
-    }
-
-    .btn-cancel:hover {
-      background: #f8fafc;
-    }
-
-    .btn-confirm {
-      flex: 1;
-      padding: 12px;
-      border-radius: 10px;
       border: none;
-      background: #ef4444;
-      color: white;
-      font-size: 14px;
-      font-weight: 600;
-      text-decoration: none;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      transition: 0.2s;
+      margin: 0;
+      padding: 0;
     }
 
-    .btn-confirm:hover {
-      background: #dc2626;
+    .calendar-btn-wrap input[type="date"]::-webkit-calendar-picker-indicator {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      cursor: pointer;
+    }
+
+    @media (max-width: 768px) {
+      .main {
+        padding: 16px !important;
+      }
+
+      .topbar-a {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+      }
+
+      .topbar-a h1 {
+        font-size: 22px;
+        line-height: 1.25;
+      }
+
+      .panel {
+        padding: 16px;
+        margin-top: 16px;
+      }
+
+      .panel-head-tools {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+      }
+
+      .panel-head-tools .toolbar-group {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        width: 100%;
+        gap: 8px;
+      }
+
+      .calendar-btn-wrap {
+        width: 42px;
+        height: 42px;
+      }
+
+      .panel-head-tools .input-wrapper {
+        flex: 1;
+        min-width: 0;
+        height: 42px;
+      }
+
+      .panel-head-tools .inp-cari {
+        flex: 1;
+        min-width: 0;
+        font-size: 14px;
+      }
+
+      .panel-head-tools .btn-cari {
+        height: 100%;
+        padding: 0 18px;
+      }
     }
   </style>
 </head>
@@ -228,39 +215,31 @@ $bulan_indo = [1 => 'Jan', 2 => 'Feb', 3 => 'Mar', 4 => 'Apr', 5 => 'Mei', 6 => 
         <div class="panel-head-tools">
           <h2>Semua Peminjaman</h2>
           <div class="toolbar-group">
-            <form method="GET" action="riwayat.php" class="input-wrapper">
-              <input type="hidden" name="tanggal" value="<?= htmlspecialchars($tgl_filter) ?>">
-              <input type="text" name="cari" class="inp-cari" placeholder="Cari NIM / Unit..."
-                value="<?= htmlspecialchars($search) ?>" oninput="if(this.value.trim() === '') this.form.submit()">
-              <button type="submit" class="btn-cari">Cari</button>
-            </form>
-            <div style="position:relative; display:inline-block;">
-              <button type="button" class="btn-filter" id="btnTanggal">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                  stroke-width="2">
-                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                  <line x1="16" y1="2" x2="16" y2="6"></line>
-                  <line x1="8" y1="2" x2="8" y2="6"></line>
-                  <line x1="3" y1="10" x2="21" y2="10"></line>
-                </svg>
-                Tanggal
-              </button>
-
+            <!-- Tombol Ikon Kalender Saja -->
+            <div class="calendar-btn-wrap <?= !empty($tgl_filter) ? 'has-date' : '' ?>"
+              title="<?= !empty($tgl_filter) ? 'Tanggal: ' . htmlspecialchars($tgl_filter) : 'Filter Tanggal' ?>"
+              onclick="bukaKalender(this)">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                <line x1="16" y1="2" x2="16" y2="6"></line>
+                <line x1="8" y1="2" x2="8" y2="6"></line>
+                <line x1="3" y1="10" x2="21" y2="10"></line>
+              </svg>
               <form id="dateForm" method="GET" action="riwayat.php" style="margin:0;">
                 <input type="hidden" name="cari" value="<?= htmlspecialchars($search) ?>">
                 <input type="date" id="hiddenDateInput" name="tanggal" value="<?= htmlspecialchars($tgl_filter) ?>"
-                  onchange="document.getElementById('dateForm').submit()" tabindex="-1" aria-hidden="true"
-                  style="position:absolute; left:0; top:0; width:100%; height:100%; opacity:0; pointer-events:none; border:0; padding:0;">
+                  onchange="document.getElementById('dateForm').submit()" aria-label="Filter Tanggal">
               </form>
             </div>
 
-            <script>
-              document.getElementById('btnTanggal').addEventListener('click', function () {
-                var input = document.getElementById('hiddenDateInput');
-                if (input.showPicker) { input.showPicker(); } else { input.focus(); input.click(); }
-              });
-            </script>
-
+            <!-- Form Pencarian -->
+            <form method="GET" action="riwayat.php" class="input-wrapper">
+              <input type="hidden" name="tanggal" value="<?= htmlspecialchars($tgl_filter) ?>">
+              <input type="search" name="cari" class="inp-cari" placeholder="Cari NIM / Unit..."
+                value="<?= htmlspecialchars($search) ?>" oninput="if(this.value.trim() === '') this.form.submit()">
+              <button type="submit" class="btn-cari">Cari</button>
+            </form>
           </div>
         </div>
 
@@ -291,7 +270,6 @@ $bulan_indo = [1 => 'Jan', 2 => 'Feb', 3 => 'Mar', 4 => 'Apr', 5 => 'Mei', 6 => 
                     $jam_kembali = date('H.i', strtotime($row['waktu_kembali'])) . ' WIB';
                   }
 
-                  // Logika Status 
                   $status = $row['status_keterlambatan'];
                   $chip_class = 'chip-ok';
 
@@ -318,7 +296,7 @@ $bulan_indo = [1 => 'Jan', 2 => 'Feb', 3 => 'Mar', 4 => 'Apr', 5 => 'Mei', 6 => 
                     <td><?= $tgl ?></td>
                     <td><?= $jam_mulai ?></td>
                     <td><?= htmlspecialchars($row['no_identitas']) ?></td>
-                    <td><?= htmlspecialchars($row['kode_qr']) ?></td>
+                    <td><strong><?= htmlspecialchars($row['kode_qr']) ?></strong></td>
                     <td><?= htmlspecialchars($row['durasi_pinjam']) ?> jam</td>
                     <td><?= $jam_kembali ?></td>
                     <td><span class="chip <?= $chip_class ?>"><?= $status ?></span></td>
@@ -337,12 +315,10 @@ $bulan_indo = [1 => 'Jan', 2 => 'Feb', 3 => 'Mar', 4 => 'Apr', 5 => 'Mei', 6 => 
     </main>
   </div>
 
-  <!-- ========================================== -->
-  <!-- MODAL POP-UP LOGOUT (SESUAI SCREENSHOT)    -->
-  <!-- ========================================== -->
+  <!-- MODAL POP-UP LOGOUT -->
   <div class="modal-overlay" id="logoutModal">
     <div class="modal-content">
-      <div class="modal-icon-wrapper">
+      <div class="modal-icon">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"
           stroke-linecap="round" stroke-linejoin="round">
           <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
@@ -350,8 +326,8 @@ $bulan_indo = [1 => 'Jan', 2 => 'Feb', 3 => 'Mar', 4 => 'Apr', 5 => 'Mei', 6 => 
           <line x1="21" y1="12" x2="9" y2="12"></line>
         </svg>
       </div>
-      <h2 class="modal-title">Konfirmasi Keluar</h2>
-      <p class="modal-desc">Apakah Anda yakin ingin keluar dari akun ini? Anda harus login kembali untuk mengakses
+      <h2>Konfirmasi Keluar</h2>
+      <p>Apakah Anda yakin ingin keluar dari akun ini? Anda harus login kembali untuk mengakses
         halaman petugas.</p>
       <div class="modal-actions">
         <button type="button" class="btn-cancel" onclick="closeLogoutModal()">Batal</button>
@@ -360,18 +336,22 @@ $bulan_indo = [1 => 'Jan', 2 => 'Feb', 3 => 'Mar', 4 => 'Apr', 5 => 'Mei', 6 => 
     </div>
   </div>
 
-  <!-- JAVASCRIPT EKSTERNAL -->
   <script src="../assets/js/common.js"></script>
   <script src="../assets/js/datepicker.js"></script>
   <script src="../assets/js/loader.js"></script>
 
-  <!-- SCRIPT UNTUK MEMBUKA & MENUTUP MODAL -->
   <script>
     function openLogoutModal() {
       document.getElementById('logoutModal').classList.add('active');
     }
     function closeLogoutModal() {
       document.getElementById('logoutModal').classList.remove('active');
+    }
+    function bukaKalender(el) {
+      const input = el.querySelector('input[type="date"]');
+      if (input && typeof input.showPicker === 'function') {
+        try { input.showPicker(); } catch (e) { input.focus(); }
+      }
     }
   </script>
 </body>

@@ -7,7 +7,7 @@
 .sidebar .logo { display: block; margin-bottom: 5px; }
 .sidebar .logo img { height: 32px; width: auto; display: block; object-fit: contain; }
 .sidebar-header { display: flex; flex-direction: column; position: relative; width: 100%; }
-.hamburger { display: none; cursor: pointer; flex-direction: column; gap: 5px; position: absolute; top: 5px; right: 0; }
+.hamburger { display: none; cursor: pointer; flex-direction: column; gap: 5px; }
 .hamburger span { display: block; width: 24px; height: 2px; background-color: #fff; border-radius: 2px; transition: 0.3s; }
 
 /* ========================================= */
@@ -48,7 +48,6 @@ body.admin { background: var(--page); }
 .table-wrap { overflow-x: auto; }
 table.tbl { width: 100%; border-collapse: collapse; margin-top: 6px; }
 
-/* Padding disesuaikan agar ada ruang napas */
 .tbl th { 
     text-align: left; 
     font-size: 13px; 
@@ -67,7 +66,6 @@ table.tbl { width: 100%; border-collapse: collapse; margin-top: 6px; }
 }
 .tbl tr:last-child td { border-bottom: 0; }
 
-/* SOLUSI ANTI-MEPET: Jarak kiri ekstra + Border kiri transparan (sebagai penahan) */
 .tbl th:first-child, 
 .tbl td:first-child {
     padding-left: 24px !important; 
@@ -75,11 +73,9 @@ table.tbl { width: 100%; border-collapse: collapse; margin-top: 6px; }
     transition: border-left-color 0.2s ease;
 }
 
-/* Efek Hover Tabel yang Estetik */
 .tbl tbody tr { transition: background-color 0.2s ease; }
 .tbl tbody tr:hover { background-color: #f4f6fb; }
 
-/* Garis biru muncul pas di ujung border transparan, tidak menabrak teks */
 .tbl tbody tr:hover td:first-child {
     border-left-color: var(--primary);
 }
@@ -103,9 +99,8 @@ table.tbl { width: 100%; border-collapse: collapse; margin-top: 6px; }
 .search-row .inp { flex: 1; height: 38px; border: 0; border-radius: 10px; background: var(--surface); padding: 0 16px; font: 400 13px 'Albert Sans', sans-serif; outline: none; }
 .search-row .inp:focus { box-shadow: 0 0 0 2px var(--primary); }
 
-
 /* ========================================= */
-/* CUSTOM CSS UNTUK HALAMAN DASHBOARD PETUGAS*/
+/* CUSTOM CSS UNTUK HALAMAN DASHBOARD        */
 /* ========================================= */
 .stat { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid transparent; cursor: default; border-bottom: 3px solid transparent; }
 .stat:hover { transform: translateY(-5px); box-shadow: 0 12px 24px rgba(58, 50, 165, 0.12); border-color: rgba(58, 50, 165, 0.1); border-bottom-color: var(--primary); }
@@ -138,24 +133,20 @@ table.tbl { width: 100%; border-collapse: collapse; margin-top: 6px; }
 
 /* ========================================= */
 /* CUSTOM CSS UNTUK TOOLBAR PENCARIAN        */
-/* (Dipakai di Riwayat, Laporan, dll)        */
 /* ========================================= */
 .panel-head-tools { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; flex-wrap: wrap; gap: 15px; }
 .panel-head-tools h2 { font-size: 17px; font-weight: 700; margin: 0; }
 .toolbar-group { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; position: relative; }
 
-/* Desain Input Pencarian */
 .input-wrapper { display: flex; align-items: center; border: 1.5px solid var(--primary); border-radius: 8px; overflow: hidden; background: #fff; height: 36px; }
 .inp-cari { border: none; padding: 0 12px; font-family: inherit; font-size: 12px; outline: none; min-width: 180px; color: var(--ink); height: 100%; }
 .inp-cari::placeholder { color: var(--muted); }
 .btn-cari { background: var(--primary); color: white; border: none; padding: 0 14px; height: 100%; font-weight: 600; font-size: 12px; cursor: pointer; transition: 0.2s; }
 .btn-cari:hover { background: var(--primary-dark); }
 
-/* Desain Tombol Tanggal */
 .btn-filter { display: inline-flex; align-items: center; gap: 6px; background: var(--primary); color: white; border: none; padding: 0 14px; height: 36px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; transition: 0.2s; text-decoration: none; }
 .btn-filter:hover { background: var(--primary-dark); }
 .btn-filter svg { width: 14px; height: 14px; }
-/* Form tanggal tersembunyi (dipicu lewat tombol Tanggal) */
 .date-form-hidden { position: absolute; right: 0; top: 100%; width: 1px; height: 1px; margin: 0; }
 .date-form-hidden input[type="date"] { width: 1px; height: 1px; opacity: 0; pointer-events: none; border: 0; padding: 0; }
 
@@ -167,10 +158,12 @@ table.tbl { width: 100%; border-collapse: collapse; margin-top: 6px; }
   
   /* Sidebar jadi Topbar di Mobile */
   .sidebar { width: 100%; height: auto; position: static; padding: 16px 20px; flex-direction: column; }
-  .sidebar .logo { display: block; margin-bottom: 5px; }
-  .sidebar-header { display: flex; flex-direction: row; align-items: center; justify-content: space-between; width: 100%; position: relative;}
-  .sidebar .role { margin-bottom: 0; margin-top: 4px;}
-  .hamburger { display: flex; cursor: pointer; flex-direction: column; gap: 5px; position: absolute; top: 5px; right: 0; }
+  .sidebar .logo { display: block; margin-bottom: 4px; }
+  .sidebar-header { display: flex; flex-direction: row; align-items: center; justify-content: space-between; width: 100%; }
+  .sidebar .role { margin-bottom: 0; margin-top: 2px; }
+  
+  /* Hamburger sejajar tengah vertikal dengan logo & role */
+  .hamburger { display: flex; position: static; cursor: pointer; flex-direction: column; gap: 5px; padding: 4px; }
   .hamburger span { display: block; width: 24px; height: 2px; background-color: #fff; border-radius: 2px; transition: 0.3s; }
   
   /* Sembunyikan menu asli, tampilkan saat dicentang */
@@ -184,7 +177,6 @@ table.tbl { width: 100%; border-collapse: collapse; margin-top: 6px; }
   .stats { grid-template-columns: repeat(2, 1fr); }
   .grid-2 { grid-template-columns: 1fr; }
   
-  /* Tabel di mobile bisa di-scroll horizontal */
   .header-panel { flex-direction: column; align-items: flex-start; }
   .search-container { width: 100%; max-width: 100%; }
   .btn-search { width: 100%; margin-left: 0; margin-top: 10px; }

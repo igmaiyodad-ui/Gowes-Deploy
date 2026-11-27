@@ -4,7 +4,6 @@ session_start();
 // ==========================================
 // 1. KONEKSI DATABASE & PROTEKSI HALAMAN
 // ==========================================
-// Sesuaikan path koneksi ini dengan struktur folder Anda
 require_once '../config/koneksi.php'; 
 
 // Cek apakah user sudah login sebagai superadmin
@@ -27,11 +26,11 @@ try {
     $stmt = $pdo->query("SELECT COUNT(*) FROM sepeda WHERE status_ketersediaan != 'Tersedia'");
     $unit_tidak_tersedia = $stmt->fetchColumn();
 
-    // Peminjaman terlambat aktif (Waktu sekarang > batas_kembali dan belum dikembalikan)
+    // Peminjaman terlambat aktif
     $stmt = $pdo->query("SELECT COUNT(*) FROM peminjaman WHERE waktu_kembali IS NULL AND CURRENT_TIMESTAMP > batas_kembali");
     $peminjaman_terlambat = $stmt->fetchColumn();
 
-    // User suspen aktif (Tanggal sekarang di antara tgl_mulai dan tgl_selesai)
+    // User suspen aktif
     $stmt = $pdo->query("SELECT COUNT(*) FROM sanksi WHERE CURRENT_DATE BETWEEN tgl_mulai AND tgl_selesai");
     $user_suspen = $stmt->fetchColumn();
 
@@ -89,7 +88,6 @@ try {
   <title>Dashboard Super Admin · GOWES</title>
   <link rel="icon" href="../img/logo.png">
   
-  <!-- PERBAIKAN PATH CSS: Diarahkan ke folder assets/css -->
   <link rel="stylesheet" href="../assets/css/fonts.css">
   <link rel="stylesheet" href="../assets/css/tokens.css">
   <link rel="stylesheet" href="../assets/css/base.css">
@@ -105,24 +103,30 @@ try {
     <aside class="sidebar">
       <input type="checkbox" id="nav-toggle" class="nav-toggle" aria-label="Buka atau tutup menu">
 
-      <div>
-        <a class="logo" href="dashboard.php"><img src="../img/logo-white.png" alt="GOWES"></a>
-        <div class="role">Super Admin</div>
-      </div>
+      <div class="sidebar-header">
+        <div>
+          <a class="logo" href="dashboard.php"><img src="../img/logo-white.png" alt="GOWES"></a>
+          <div class="role">Super Admin</div>
+        </div>
 
-      <label class="hamburger" for="nav-toggle" aria-label="Buka menu"><span></span><span></span><span></span></label>
+        <label class="hamburger" for="nav-toggle" aria-label="Buka menu">
+          <span></span>
+          <span></span>
+          <span></span>
+        </label>
+      </div>
 
       <nav class="menu" aria-label="Menu Super Admin">
         <a href="dashboard.php" class="on">Dashboard</a>
-        <a href="unit.php" class="">Unit Go-bike</a>
-        <a href="peminjaman.php" class="">Peminjaman</a>
-        <a href="sanksi.php" class="">Sanksi</a>
-        <a href="laporan.php" class="">Laporan Kondisi</a>
-        <a href="riwayat.php" class="">Riwayat Peminjaman</a>
-        <a href="tambah-petugas-admin.php" class="">Tambah Petugas/Admin</a>
+        <a href="unit.php">Unit Go-bike</a>
+        <a href="peminjaman.php">Peminjaman</a>
+        <a href="sanksi.php">Sanksi</a>
+        <a href="laporan.php">Laporan Kondisi</a>
+        <a href="riwayat.php">Riwayat Peminjaman</a>
+        <a href="tambah-petugas-admin.php">Tambah Petugas/Admin</a>
       </nav>
 
-      <a class="menu-logout" href="../auth/login.php?logout=true">Keluar</a>
+      <a class="menu-logout" href="javascript:void(0);" onclick="openLogoutModal()">Keluar</a>
     </aside>
 
     <!-- ===== KONTEN UTAMA ===== -->
@@ -201,7 +205,6 @@ try {
                         <td><?= htmlspecialchars($row['nama_shelter']) ?></td>
                         <td><?= date('H:i', strtotime($row['batas_kembali'])) ?> WIB</td>
                         
-                        <!-- Logika Penentuan Status Berdasarkan Waktu Saat Ini -->
                         <?php 
                             $sekarang = new DateTime();
                             $batas = new DateTime($row['batas_kembali']);
@@ -210,7 +213,6 @@ try {
                             if ($sekarang > $batas) {
                                 echo '<td><span class="chip chip-bad">Terlambat</span></td>';
                             } elseif ($selisih->h == 0 && $selisih->i <= 30 && $sekarang < $batas) {
-                                // Jika sisa waktu <= 30 menit
                                 echo '<td><span class="chip chip-warn">Mendekati batas</span></td>';
                             } else {
                                 echo '<td><span class="chip chip-ok">Aktif</span></td>';
@@ -231,10 +233,34 @@ try {
     </main>
   </div>
 
-  <!-- PERBAIKAN PATH JS: Diarahkan ke folder assets/js, tanpa loader.js -->
-  <script src="../assets/js/common.js"></script>
+  <!-- MODAL POP-UP LOGOUT -->
+  <div class="modal-overlay" id="logoutModal">
+      <div class="modal-content">
+          <div class="modal-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                  <polyline points="16 17 21 12 16 7"></polyline>
+                  <line x1="21" y1="12" x2="9" y2="12"></line>
+              </svg>
+          </div>
+          <h2>Konfirmasi Keluar</h2>
+          <p>Apakah Anda yakin ingin keluar dari akun ini? Anda harus login kembali untuk mengakses halaman superadmin.</p>
+          <div class="modal-actions">
+              <button type="button" class="btn-cancel" onclick="closeLogoutModal()">Batal</button>
+              <a href="../auth/login.php?logout=true" class="btn-confirm">Ya, Keluar</a>
+          </div>
+      </div>
+  </div>
+
+  <script>
+      function openLogoutModal() {
+          document.getElementById('logoutModal').classList.add('active');
+      }
+      function closeLogoutModal() {
+          document.getElementById('logoutModal').classList.remove('active');
+      }
+  </script>
   <script src="../assets/js/tabel.js"></script>
-  <script src="../assets/js/modal.js"></script>
 </body>
 
 </html>

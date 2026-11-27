@@ -20,16 +20,27 @@ $units = $pdo->query($sql)->fetchAll();
   <link rel="stylesheet" href="../assets/css/fonts.css"><link rel="stylesheet" href="../assets/css/tokens.css">
   <link rel="stylesheet" href="../assets/css/base.css"><link rel="stylesheet" href="../assets/css/components.css">
   <link rel="stylesheet" href="../assets/css/panel.css"><link rel="stylesheet" href="../assets/css/loader.css">
+  <style>
+    @media (max-width: 768px) {
+      .main { padding: 16px !important; }
+      .topbar-a { flex-direction: column; align-items: flex-start; gap: 10px; }
+      .topbar-a h1 { font-size: 22px; line-height: 1.25; }
+      .panel { padding: 16px; margin-top: 16px; }
+    }
+  </style>
 </head>
 <body class="admin" data-peran="petugas">
   <div class="admin-shell">
     <aside class="sidebar">
-      <input type="checkbox" id="nav-toggle" class="nav-toggle">
+      <input type="checkbox" id="nav-toggle" class="nav-toggle" aria-label="Buka atau tutup menu">
       <div class="sidebar-header">
-        <div><a class="logo" href="dashboard.php"><img src="../img/logo-white.png" alt="GOWES"></a><div class="role">Petugas / Satpam</div></div>
-        <label class="hamburger" for="nav-toggle"><span></span><span></span><span></span></label>
+        <div>
+          <a class="logo" href="dashboard.php"><img src="../img/logo-white.png" alt="GOWES"></a>
+          <div class="role">Petugas / Satpam</div>
+        </div>
+        <label class="hamburger" for="nav-toggle" aria-label="Buka menu"><span></span><span></span><span></span></label>
       </div>
-      <nav class="menu">
+      <nav class="menu" aria-label="Menu Petugas / Satpam">
         <a href="dashboard.php">Dashboard</a>
         <a href="unit.php" class="on">Unit Go-bike</a>
         <a href="peminjaman.php">Peminjaman</a>
@@ -63,7 +74,7 @@ $units = $pdo->query($sql)->fetchAll();
                   </tr>
                 <?php endforeach; ?>
               <?php else: ?>
-                <tr><td colspan="4" style="text-align:center;">Belum ada data unit sepeda.</td></tr>
+                <tr><td colspan="4" style="text-align:center; padding: 24px; color: var(--muted);">Belum ada data unit sepeda.</td></tr>
               <?php endif; ?>
             </tbody>
           </table>

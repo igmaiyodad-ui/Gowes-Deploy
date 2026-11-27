@@ -75,8 +75,60 @@ $bulan_indo = [1 => 'Jan', 2 => 'Feb', 3 => 'Mar', 4 => 'Apr', 5 => 'Mei', 6 => 
   <link rel="stylesheet" href="../assets/css/panel.css">
   <link rel="stylesheet" href="../assets/css/loader.css">
   <style>
-    @media (max-width: 768px) {
+    /* ========================================= */
+    /* TOMBOL IKON KALENDER (DESKTOP & MOBILE)   */
+    /* ========================================= */
+    .calendar-btn-wrap {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      background: #fff;
+      border: 1.5px solid var(--primary);
+      border-radius: 8px;
+      color: var(--primary);
+      cursor: pointer;
+      flex: 0 0 auto;
+      transition: background 0.2s, color 0.2s;
+    }
 
+    .calendar-btn-wrap:hover,
+    .calendar-btn-wrap.has-date {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    .calendar-btn-wrap svg {
+      width: 17px;
+      height: 17px;
+      pointer-events: none;
+    }
+
+    /* Input date transparan menutupi tombol agar klik langsung membuka kalender */
+    .calendar-btn-wrap input[type="date"] {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      cursor: pointer;
+      border: none;
+      margin: 0;
+      padding: 0;
+    }
+
+    .calendar-btn-wrap input[type="date"]::-webkit-calendar-picker-indicator {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      cursor: pointer;
+    }
+
+    @media (max-width: 768px) {
       /* 1. Area konten: kurangi padding luar */
       .main {
         padding: 16px !important;
@@ -115,7 +167,7 @@ $bulan_indo = [1 => 'Jan', 2 => 'Feb', 3 => 'Mar', 4 => 'Apr', 5 => 'Mei', 6 => 
         padding: 16px !important;
       }
 
-      /* 4. Header panel + toolbar: tumpuk vertikal, lebar penuh */
+      /* 4. Header panel + toolbar: ikon kalender + kolom cari sejajar rapi */
       .panel-head-tools {
         display: flex !important;
         flex-direction: column !important;
@@ -131,39 +183,37 @@ $bulan_indo = [1 => 'Jan', 2 => 'Feb', 3 => 'Mar', 4 => 'Apr', 5 => 'Mei', 6 => 
 
       .panel-head-tools .toolbar-group {
         display: flex !important;
-        flex-direction: column !important;
-        align-items: stretch !important;
+        flex-direction: row !important;
+        align-items: center !important;
         width: 100% !important;
-        gap: 10px !important;
+        gap: 8px !important;
       }
 
-      /* Input tanggal (wrapper inline style) */
-      .panel-head-tools .toolbar-group>div:first-child {
-        width: 100% !important;
+      /* Tombol ikon kalender di mobile tetap 42x42 kotak ikon saja */
+      .calendar-btn-wrap {
+        width: 42px !important;
         height: 42px !important;
       }
 
-      .panel-head-tools .toolbar-group input[type="date"] {
-        width: 100% !important;
-        font-size: 14px !important;
-      }
-
-      /* Input pencarian + tombol Cari */
+      /* Input pencarian + tombol Cari mengisi sisa lebar */
       .panel-head-tools .input-wrapper {
         display: flex !important;
-        width: 100% !important;
+        flex: 1 1 auto !important;
+        width: auto !important;
+        min-width: 0 !important;
+        height: 42px !important;
       }
 
       .panel-head-tools .inp-cari {
         flex: 1 1 auto !important;
         min-width: 0 !important;
-        height: 42px !important;
+        height: 100% !important;
         font-size: 14px !important;
       }
 
       .panel-head-tools .btn-cari {
         flex: 0 0 auto !important;
-        height: 42px !important;
+        height: 100% !important;
         padding: 0 18px !important;
       }
 
@@ -236,16 +286,20 @@ $bulan_indo = [1 => 'Jan', 2 => 'Feb', 3 => 'Mar', 4 => 'Apr', 5 => 'Mei', 6 => 
 
       <section class="panel">
 
-        <!-- HEADER PANEL & PENCARIAN (sama seperti Riwayat Peminjaman) -->
+        <!-- HEADER PANEL & PENCARIAN -->
         <div class="panel-head-tools">
           <h2>Laporan Terbaru</h2>
 
           <form method="GET" action="" class="toolbar-group">
-            <!-- Input Tanggal -->
-            <div
-              style="position: relative; display: flex; align-items: center; background: #fff; border: 1.5px solid var(--primary); border-radius: 8px; height: 36px; padding: 0 10px;">
-              <input type="date" name="date" value="<?= htmlspecialchars($filter_date) ?>" onchange="this.form.submit()"
-                style="border: none; outline: none; font-family: inherit; font-size: 12px; color: var(--ink); background: transparent;">
+            <!-- Tombol Ikon Kalender Saja -->
+            <div class="calendar-btn-wrap <?= !empty($filter_date) ? 'has-date' : '' ?>" title="<?= !empty($filter_date) ? 'Tanggal: ' . htmlspecialchars($filter_date) : 'Filter Tanggal' ?>" onclick="bukaKalender(this)">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                <line x1="16" y1="2" x2="16" y2="6"></line>
+                <line x1="8" y1="2" x2="8" y2="6"></line>
+                <line x1="3" y1="10" x2="21" y2="10"></line>
+              </svg>
+              <input type="date" id="dateFilter" name="date" value="<?= htmlspecialchars($filter_date) ?>" onchange="this.form.submit()" aria-label="Filter Tanggal">
             </div>
 
             <!-- Input Pencarian -->
@@ -276,7 +330,6 @@ $bulan_indo = [1 => 'Jan', 2 => 'Feb', 3 => 'Mar', 4 => 'Apr', 5 => 'Mei', 6 => 
                   $ts = strtotime($row['tgl_lapor']);
                   $tgl = date('d', $ts) . ' ' . $bulan_indo[(int) date('m', $ts)] . ' ' . date('Y', $ts);
 
-                  // Kondisi dihitung dengan fungsi yang sama seperti di unit.php
                   [$status_text, $chip_class] = labelKondisi(
                     $row['nilai_ban'],
                     $row['nilai_rem'],
@@ -330,6 +383,18 @@ $bulan_indo = [1 => 'Jan', 2 => 'Feb', 3 => 'Mar', 4 => 'Apr', 5 => 'Mei', 6 => 
   <!-- JAVASCRIPT EKSTERNAL -->
   <script src="../assets/js/common.js"></script>
   <script src="../assets/js/logout-modal.js"></script>
+  <script>
+    function bukaKalender(el) {
+      const input = el.querySelector('input[type="date"]');
+      if (input && typeof input.showPicker === 'function') {
+        try {
+          input.showPicker();
+        } catch (e) {
+          input.focus();
+        }
+      }
+    }
+  </script>
 </body>
 
 </html>

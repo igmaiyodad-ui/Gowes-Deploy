@@ -12,7 +12,7 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'superadmin') {
 }
 
 $nama_admin = isset($_SESSION['nama']) ? $_SESSION['nama'] : 'Super Admin';
-$id_superadmin = isset($_SESSION['id_superadmin']) ? $_SESSION['id_superadmin'] : 1; // Asumsi ID superadmin ada di session
+$id_superadmin = isset($_SESSION['id_superadmin']) ? $_SESSION['id_superadmin'] : 1;
 $pesan = '';
 
 // ==========================================
@@ -61,14 +61,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 try {
     $shelters = $pdo->query("SELECT id_shelter, nama_shelter, lokasi FROM shelter ORDER BY nama_shelter ASC")->fetchAll();
     
-    // Ambil data petugas
     $sql_petugas = "SELECT p.username, s.nama_shelter 
                     FROM petugas p 
                     JOIN shelter s ON p.id_shelter = s.id_shelter 
                     ORDER BY s.nama_shelter ASC";
     $petugas_list = $pdo->query($sql_petugas)->fetchAll();
 
-    // Ambil data admin
     $admin_list = $pdo->query("SELECT username FROM admin ORDER BY username ASC")->fetchAll();
 
 } catch (PDOException $e) {
@@ -85,20 +83,16 @@ try {
   <title>Tambah Petugas/Admin · GOWES</title>
   <link rel="icon" href="../img/logo.png">
   
-  <!-- PATH CSS -->
   <link rel="stylesheet" href="../assets/css/fonts.css">
   <link rel="stylesheet" href="../assets/css/tokens.css">
   <link rel="stylesheet" href="../assets/css/base.css">
   <link rel="stylesheet" href="../assets/css/components.css">
   <link rel="stylesheet" href="../assets/css/panel.css">
   
-  <!-- CUSTOM CSS UNTUK TAMPILAN AESTETIC & POPUP -->
   <style>
-      /* Alert Style */
       .alert-success { background: #ecfdf5; color: #047857; padding: 14px 20px; border-radius: 10px; margin-bottom: 20px; border: 1px solid #a7f3d0; font-size: 14px; font-weight: 500; }
       .alert-error { background: #fef2f2; color: #b91c1c; padding: 14px 20px; border-radius: 10px; margin-bottom: 20px; border: 1px solid #fecaca; font-size: 14px; font-weight: 500; }
 
-      /* Panel & Card Aesthetic */
       .panel {
           border-radius: 16px;
           box-shadow: 0 4px 24px rgba(0, 0, 0, 0.03);
@@ -110,6 +104,8 @@ try {
           display: flex;
           justify-content: space-between;
           align-items: center;
+          flex-wrap: wrap;
+          gap: 12px;
           padding: 24px;
           border-bottom: 1px solid #f8fafc;
       }
@@ -120,11 +116,11 @@ try {
           margin: 0;
       }
 
-      /* Tombol Add & Search Aesthetic */
       .toolbar {
           display: flex;
           align-items: center;
           gap: 12px;
+          flex-wrap: wrap;
       }
       .btn-aesthetic {
           display: inline-flex;
@@ -139,7 +135,7 @@ try {
           cursor: pointer;
           transition: all 0.2s ease;
           border: none;
-          background: #4f46e5; /* Warna Primary */
+          background: #4f46e5;
           color: #ffffff;
       }
       .btn-aesthetic:hover {
@@ -152,7 +148,6 @@ try {
           height: 16px;
       }
       
-      /* Form Search Aesthetic */
       .search-form {
           display: flex;
           align-items: center;
@@ -162,6 +157,7 @@ try {
           padding: 0 16px;
           height: 40px;
           width: 250px;
+          max-width: 100%;
           transition: border 0.2s;
       }
       .search-form:focus-within {
@@ -187,7 +183,6 @@ try {
           color: #94a3b8;
       }
 
-      /* Tabel Aesthetic */
       .table-wrap {
           padding: 0 24px 24px 24px;
       }
@@ -210,7 +205,6 @@ try {
           border-bottom: none;
       }
 
-      /* Badge Status Aesthetic */
       .badge-aktif {
           display: inline-flex;
           align-items: center;
@@ -223,16 +217,15 @@ try {
           letter-spacing: 0.3px;
       }
 
-      /* ✅ CUSTOM POPUP MODAL (MUTLAK) */
       .custom-overlay {
-          display: none; /* Disembunyikan secara default */
+          display: none;
           position: fixed;
           top: 0; left: 0; width: 100%; height: 100%;
-          background: rgba(15, 23, 42, 0.6); /* Warna gelap transparan */
+          background: rgba(15, 23, 42, 0.6);
           z-index: 9999;
           align-items: center;
           justify-content: center;
-          backdrop-filter: blur(4px); /* Efek blur estetik */
+          backdrop-filter: blur(4px);
       }
       .custom-modal {
           background: #fff;
@@ -322,12 +315,18 @@ try {
     <aside class="sidebar">
       <input type="checkbox" id="nav-toggle" class="nav-toggle" aria-label="Buka atau tutup menu">
 
-      <div>
-        <a class="logo" href="dashboard.php"><img src="../img/logo-white.png" alt="GOWES"></a>
-        <div class="role">Super Admin</div>
-      </div>
+      <div class="sidebar-header">
+        <div>
+          <a class="logo" href="dashboard.php"><img src="../img/logo-white.png" alt="GOWES"></a>
+          <div class="role">Super Admin</div>
+        </div>
 
-      <label class="hamburger" for="nav-toggle" aria-label="Buka menu"><span></span><span></span><span></span></label>
+        <label class="hamburger" for="nav-toggle" aria-label="Buka menu">
+          <span></span>
+          <span></span>
+          <span></span>
+        </label>
+      </div>
 
       <nav class="menu" aria-label="Menu Super Admin">
         <a href="dashboard.php">Dashboard</a>
@@ -359,7 +358,6 @@ try {
         <div class="panel-head">
           <h2>Data Petugas Go-bike</h2>
           <div class="toolbar">
-            <!-- Tombol memanggil fungsi JS untuk buka popup -->
             <button type="button" class="btn-aesthetic" onclick="openCustomModal('modal-petugas')">
                 <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M10 4v12M4 10h12"/></svg>
                 Add
@@ -401,7 +399,6 @@ try {
         <div class="panel-head">
           <h2>Data Admin Go-bike</h2>
           <div class="toolbar">
-            <!-- Tombol memanggil fungsi JS untuk buka popup -->
             <button type="button" class="btn-aesthetic" onclick="openCustomModal('modal-admin')">
                 <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M10 4v12M4 10h12"/></svg>
                 Add
@@ -440,9 +437,7 @@ try {
     </main>
   </div>
 
-  <!-- ========================================== -->
-  <!-- POPUP MODAL TAMBAH PETUGAS                 -->
-  <!-- ========================================== -->
+  <!-- POPUP MODAL TAMBAH PETUGAS -->
   <div class="custom-overlay" id="modal-petugas">
       <div class="custom-modal">
           <h2>Tambah Petugas Go-bike</h2>
@@ -476,9 +471,7 @@ try {
       </div>
   </div>
 
-  <!-- ========================================== -->
-  <!-- POPUP MODAL TAMBAH ADMIN                   -->
-  <!-- ========================================== -->
+  <!-- POPUP MODAL TAMBAH ADMIN -->
   <div class="custom-overlay" id="modal-admin">
       <div class="custom-modal">
           <h2>Tambah Admin Go-bike</h2>
@@ -503,9 +496,7 @@ try {
       </div>
   </div>
 
-  <!-- ========================================== -->
-  <!-- MODAL POP-UP LOGOUT                        -->
-  <!-- ========================================== -->
+  <!-- MODAL POP-UP LOGOUT -->
   <div class="modal-overlay" id="logoutModal">
       <div class="modal-content">
           <div class="modal-icon">
@@ -524,9 +515,7 @@ try {
       </div>
   </div>
 
-  <!-- JAVASCRIPT -->
   <script>
-      // Script Sederhana untuk Membuka & Menutup Popup Kustom
       function openCustomModal(id) {
           document.getElementById(id).style.display = 'flex';
       }
@@ -535,7 +524,6 @@ try {
       }
   </script>
   
-  <script src="../assets/js/common.js"></script>
   <script src="../assets/js/tabel.js"></script>
   <script src="../assets/js/logout-modal.js"></script>
 </body>

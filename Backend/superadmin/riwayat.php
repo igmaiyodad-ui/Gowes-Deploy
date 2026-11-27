@@ -75,7 +75,6 @@ function formatTanggalWaktuIndo($dateString) {
   <title>Riwayat Peminjaman · GOWES</title>
   <link rel="icon" href="../img/logo.png">
   
-  <!-- PATH CSS -->
   <link rel="stylesheet" href="../assets/css/fonts.css">
   <link rel="stylesheet" href="../assets/css/tokens.css">
   <link rel="stylesheet" href="../assets/css/base.css">
@@ -89,11 +88,20 @@ function formatTanggalWaktuIndo($dateString) {
     <!-- ===== SIDEBAR ===== -->
     <aside class="sidebar">
       <input type="checkbox" id="nav-toggle" class="nav-toggle" aria-label="Buka atau tutup menu">
-      <div>
-        <a class="logo" href="dashboard.php"><img src="../img/logo-white.png" alt="GOWES"></a>
-        <div class="role">Super Admin</div>
+
+      <div class="sidebar-header">
+        <div>
+          <a class="logo" href="dashboard.php"><img src="../img/logo-white.png" alt="GOWES"></a>
+          <div class="role">Super Admin</div>
+        </div>
+
+        <label class="hamburger" for="nav-toggle" aria-label="Buka menu">
+          <span></span>
+          <span></span>
+          <span></span>
+        </label>
       </div>
-      <label class="hamburger" for="nav-toggle" aria-label="Buka menu"><span></span><span></span><span></span></label>
+
       <nav class="menu" aria-label="Menu Super Admin">
         <a href="dashboard.php">Dashboard</a>
         <a href="unit.php">Unit Go-bike</a>
@@ -117,24 +125,19 @@ function formatTanggalWaktuIndo($dateString) {
       </header>
 
       <section class="panel">
-        
-        <!-- HEADER PANEL & PENCARIAN -->
         <div class="panel-head-tools">
           <h2>Data Riwayat</h2>
           
           <form method="GET" action="" class="toolbar-group">
-            <!-- Input Tanggal (Disamarkan dengan border) -->
             <div style="position: relative; display: flex; align-items: center; background: #fff; border: 1.5px solid var(--primary); border-radius: 8px; height: 36px; padding: 0 10px;">
                 <input type="date" name="date" value="<?= htmlspecialchars($filter_date) ?>" onchange="this.form.submit()" style="border: none; outline: none; font-family: inherit; font-size: 12px; color: var(--ink); background: transparent;">
             </div>
             
-            <!-- Input Pencarian -->
             <div class="input-wrapper">
                 <input type="search" name="search" class="inp-cari" placeholder="Cari NIM / Nama / Unit..." value="<?= htmlspecialchars($search) ?>">
                 <button type="submit" class="btn-cari">Cari</button>
             </div>
           </form>
-
         </div>
         
         <div class="table-wrap">
@@ -201,8 +204,6 @@ function formatTanggalWaktuIndo($dateString) {
       </div>
   </div>
 
-  <!-- JAVASCRIPT -->
-  <script src="../assets/js/common.js"></script>
   <script src="../assets/js/logout-modal.js"></script>
 </body>
 </html>

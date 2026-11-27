@@ -67,7 +67,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt4->execute(['id' => $no_identitas]);
             $superadmin = $stmt4->fetch();
 
-            // Menggunakan password_verify DAN fallback plaintext (karena di DB Anda masih admin123)
+            // Menggunakan password_verify DAN fallback plaintext
             if ($superadmin && (password_verify($password, $superadmin['password']) || $password === $superadmin['password'])) {
                 session_regenerate_id(true); 
                 $_SESSION['role']          = 'superadmin';
@@ -89,7 +89,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $_SESSION['id_peminjam']    = $peminjam['id_peminjam'];
                 $_SESSION['nama']           = $peminjam['nama']; 
                 $_SESSION['no_identitas']   = $peminjam['no_identitas'];
-                $_SESSION['jenis_peminjam'] = $peminjam['jenis_peminjam'] ?? 'Mahasiswa';
+                $_SESSION['jenis_peminjam'] = $peminjam['jenis_peminjam'];
                 header("Location: ../mahasiswa/peminjaman.php"); 
                 exit;
             }
@@ -151,6 +151,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <link rel="stylesheet" href="../assets/css/base.css">
   <link rel="stylesheet" href="../assets/css/components.css">
   <link rel="stylesheet" href="../assets/css/login-mahasiswa.css">
+
+  <style>
+    /* Memastikan logo GOWES mobile berada tepat di tengah tanpa mengubah posisi vertikal */
+    .mobile-logo {
+      width: 100%;
+      text-align: center;
+    }
+    .mobile-logo img {
+      display: block;
+      margin-left: auto;
+      margin-right: auto;
+    }
+  </style>
 </head>
 <body class="login">
   

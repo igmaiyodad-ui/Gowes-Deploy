@@ -489,7 +489,7 @@ $baseUrl = $scheme . '://' . $_SERVER['HTTP_HOST'] . dirname(dirname($_SERVER['S
 
             <div class="qr-grid">
                 <?php foreach ($units as $row):
-                    $qrData = $baseUrl . '/user/scan_hasil.php?qr=' . urlencode($row['kode_qr']);
+                    $qrData = $baseUrl . '/user/hasil_scan.php?qr=' . urlencode($row['kode_qr']);
                     ?>
                     <div class="qr-card <?= $row['kode_qr'] === $added ? 'qr-card-new' : '' ?>">
                         <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=<?= urlencode($qrData) ?>"

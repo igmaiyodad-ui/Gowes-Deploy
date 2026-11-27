@@ -20,7 +20,6 @@ $search = isset($_GET['search']) ? trim($_GET['search']) : '';
 $filter_date = isset($_GET['date']) ? trim($_GET['date']) : '';
 
 try {
-  // Tambahkan pm.batas_kembali agar bisa menghitung keterlambatan secara akurat
   $sql = "SELECT 
                 pm.id_peminjaman,
                 p.no_identitas,
@@ -98,8 +97,6 @@ function formatTanggalWaktuIndo($dateString)
   <link rel="stylesheet" href="../assets/css/loader.css">
 
   <style>
-    /* --- CUSTOM CSS AGAR TABEL LEBIH RAPI DAN LEGA --- */
-
     /* Styling untuk Badge Status */
     .chip {
       display: inline-flex;
@@ -126,6 +123,7 @@ function formatTanggalWaktuIndo($dateString)
     /* Styling Tabel Modern */
     .table-wrap {
       overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
       background: #ffffff;
       border-radius: 12px;
       border: 1px solid #e2e8f0;
@@ -155,6 +153,7 @@ function formatTanggalWaktuIndo($dateString)
       color: #334155;
       border-bottom: 1px solid #f1f5f9;
       vertical-align: middle;
+      white-space: nowrap;
     }
 
     .tbl tbody tr {
@@ -169,43 +168,71 @@ function formatTanggalWaktuIndo($dateString)
       border-bottom: none;
     }
 
-    /* Styling untuk Input Date & Search agar sejajar */
+    /* ========================================= */
+    /* TOMBOL IKON KALENDER & SEARCH BAR         */
+    /* ========================================= */
     .toolbar-group {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 10px;
     }
 
-    .date-input-wrapper {
-      display: flex;
+    .calendar-btn-wrap {
+      position: relative;
+      display: inline-flex;
       align-items: center;
-      background: #fff;
-      border: 1.5px solid #e2e8f0;
-      border-radius: 8px;
+      justify-content: center;
+      width: 38px;
       height: 38px;
-      padding: 0 12px;
-      transition: all 0.2s;
+      background: #fff;
+      border: 1.5px solid var(--primary);
+      border-radius: 8px;
+      color: var(--primary);
+      cursor: pointer;
+      flex: 0 0 auto;
+      transition: background 0.2s, color 0.2s;
     }
 
-    .date-input-wrapper:focus-within {
-      border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+    .calendar-btn-wrap:hover,
+    .calendar-btn-wrap.has-date {
+      background: var(--primary);
+      color: #fff;
     }
 
-    .date-input-wrapper input {
+    .calendar-btn-wrap svg {
+      width: 18px;
+      height: 18px;
+      pointer-events: none;
+    }
+
+    .calendar-btn-wrap input[type="date"] {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      cursor: pointer;
       border: none;
-      outline: none;
-      font-family: inherit;
-      font-size: 13px;
-      color: #334155;
-      background: transparent;
+      margin: 0;
+      padding: 0;
     }
 
-    /* Memperbaiki Input Search Bawaan */
+    .calendar-btn-wrap input[type="date"]::-webkit-calendar-picker-indicator {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      cursor: pointer;
+    }
+
     .input-wrapper {
       display: flex;
       align-items: center;
       position: relative;
+      border: none !important;
+      background: transparent !important;
+      height: auto !important;
     }
 
     .inp-cari {
@@ -232,6 +259,76 @@ function formatTanggalWaktuIndo($dateString)
       margin-left: 8px;
       border-radius: 8px !important;
       font-size: 13px !important;
+      flex: 0 0 auto;
+    }
+
+    /* ========================================= */
+    /* RESPONSIVE MOBILE                         */
+    /* ========================================= */
+    @media (max-width: 768px) {
+      .main {
+        padding: 16px !important;
+        min-width: 0 !important;
+      }
+
+      .topbar-a {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 12px !important;
+        margin-bottom: 16px !important;
+      }
+
+      .topbar-a h1 {
+        font-size: 22px !important;
+        line-height: 1.25 !important;
+      }
+
+      .panel {
+        padding: 16px !important;
+      }
+
+      .panel-head-tools {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 14px !important;
+      }
+
+      .toolbar-group {
+        width: 100% !important;
+        gap: 8px !important;
+      }
+
+      .calendar-btn-wrap {
+        width: 42px !important;
+        height: 42px !important;
+      }
+
+      .input-wrapper {
+        flex: 1 1 auto !important;
+        min-width: 0 !important;
+      }
+
+      .inp-cari {
+        flex: 1 1 auto !important;
+        width: 100% !important;
+        min-width: 0 !important;
+        height: 42px !important;
+        font-size: 14px !important;
+      }
+
+      .btn-cari {
+        height: 42px !important;
+        padding: 0 18px !important;
+      }
+
+      .tbl {
+        min-width: 720px !important;
+      }
+
+      .tbl th,
+      .tbl td {
+        padding: 12px 14px !important;
+      }
     }
   </style>
 </head>
@@ -278,10 +375,19 @@ function formatTanggalWaktuIndo($dateString)
           <h2 style="font-size: 18px; font-weight: 700; color: #1e293b; margin: 0;">Data Riwayat</h2>
 
           <form method="GET" action="" class="toolbar-group">
-            <!-- Input Tanggal -->
-            <div class="date-input-wrapper">
+            <!-- Tombol Ikon Kalender Saja -->
+            <div class="calendar-btn-wrap <?= !empty($filter_date) ? 'has-date' : '' ?>"
+              title="<?= !empty($filter_date) ? 'Tanggal: ' . htmlspecialchars($filter_date) : 'Filter Tanggal' ?>"
+              onclick="bukaKalender(this)">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                <line x1="16" y1="2" x2="16" y2="6"></line>
+                <line x1="8" y1="2" x2="8" y2="6"></line>
+                <line x1="3" y1="10" x2="21" y2="10"></line>
+              </svg>
               <input type="date" name="date" value="<?= htmlspecialchars($filter_date) ?>"
-                onchange="this.form.submit()">
+                onchange="this.form.submit()" aria-label="Filter Tanggal">
             </div>
 
             <!-- Input Pencarian -->
@@ -309,8 +415,6 @@ function formatTanggalWaktuIndo($dateString)
               <?php if (count($riwayat) > 0): ?>
                 <?php foreach ($riwayat as $row): ?>
                   <?php
-                  // LOGIKA: Cek keterlambatan secara mandiri di PHP
-                  // Jika waktu_kembali melebihi batas_kembali, maka "Terlambat"
                   $waktu_kembali = strtotime($row['waktu_kembali']);
                   $batas_kembali = strtotime($row['batas_kembali']);
 
@@ -381,6 +485,18 @@ function formatTanggalWaktuIndo($dateString)
   <!-- JAVASCRIPT -->
   <script src="../assets/js/common.js"></script>
   <script src="../assets/js/logout-modal.js"></script>
+  <script>
+    function bukaKalender(el) {
+      const input = el.querySelector('input[type="date"]');
+      if (input && typeof input.showPicker === 'function') {
+        try {
+          input.showPicker();
+        } catch (e) {
+          input.focus();
+        }
+      }
+    }
+  </script>
 </body>
 
 </html>

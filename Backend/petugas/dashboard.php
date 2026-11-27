@@ -29,16 +29,31 @@ $shelters = $pdo->query($sql_shelter)->fetchAll();
   <link rel="stylesheet" href="../assets/css/fonts.css"><link rel="stylesheet" href="../assets/css/tokens.css">
   <link rel="stylesheet" href="../assets/css/base.css"><link rel="stylesheet" href="../assets/css/components.css">
   <link rel="stylesheet" href="../assets/css/panel.css"><link rel="stylesheet" href="../assets/css/loader.css">
+  <style>
+    @media (max-width: 768px) {
+      .main { padding: 16px !important; }
+      .topbar-a { flex-direction: column; align-items: flex-start; gap: 10px; }
+      .topbar-a h1 { font-size: 22px; line-height: 1.25; }
+      .stats { grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 16px; }
+      .stat { padding: 14px 16px; }
+      .stat .v { font-size: 28px; }
+      .panel { padding: 16px; margin-top: 16px; }
+      .grid-2 { grid-template-columns: 1fr; gap: 12px; margin-top: 16px; }
+    }
+  </style>
 </head>
 <body class="admin" data-peran="petugas">
   <div class="admin-shell">
     <aside class="sidebar">
-      <input type="checkbox" id="nav-toggle" class="nav-toggle">
+      <input type="checkbox" id="nav-toggle" class="nav-toggle" aria-label="Buka atau tutup menu">
       <div class="sidebar-header">
-        <div><a class="logo" href="dashboard.php"><img src="../img/logo-white.png" alt="GOWES"></a><div class="role">Petugas / Satpam</div></div>
-        <label class="hamburger" for="nav-toggle"><span></span><span></span><span></span></label>
+        <div>
+          <a class="logo" href="dashboard.php"><img src="../img/logo-white.png" alt="GOWES"></a>
+          <div class="role">Petugas / Satpam</div>
+        </div>
+        <label class="hamburger" for="nav-toggle" aria-label="Buka menu"><span></span><span></span><span></span></label>
       </div>
-      <nav class="menu">
+      <nav class="menu" aria-label="Menu Petugas / Satpam">
         <a href="dashboard.php" class="on">Dashboard</a>
         <a href="unit.php">Unit Go-bike</a>
         <a href="peminjaman.php">Peminjaman</a>
@@ -50,9 +65,13 @@ $shelters = $pdo->query($sql_shelter)->fetchAll();
 
     <main class="main">
       <header class="topbar-a">
-        <div><h1>Dashboard Petugas</h1><p>Senin–Jumat, 08.00–15.30 WIB · Login sebagai: <b><?= htmlspecialchars($_SESSION['nama']) ?></b></p></div>
+        <div>
+          <h1>Dashboard Petugas</h1>
+          <p>Senin–Jumat, 08.00–15.30 WIB · Login sebagai: <b><?= htmlspecialchars($_SESSION['nama']) ?></b></p>
+        </div>
         <span class="pill">Petugas - Satpam</span>
       </header>
+
       <section class="stats">
         <div class="stat"><div class="k">Unit tersedia</div><div class="v" style="color:var(--primary)"><?= $unit_tersedia ?></div></div>
         <div class="stat"><div class="k">Sedang dipinjam</div><div class="v" style="color:var(--ink)"><?= $sedang_dipinjam ?></div></div>
@@ -75,10 +94,16 @@ $shelters = $pdo->query($sql_shelter)->fetchAll();
                           if ($status == 'Terlambat') $chip_class = 'chip-bad';
                           else if (strtotime($row['batas_kembali']) - time() < 1800) $chip_class = 'chip-warn';
                       ?>
-                      <tr><td><?= htmlspecialchars($row['no_identitas']) ?></td><td><?= htmlspecialchars($row['kode_qr']) ?></td><td><?= htmlspecialchars($row['nama_shelter']) ?></td><td><?= $jam_batas ?></td><td><span class="chip <?= $chip_class ?>"><?= $status ?></span></td></tr>
+                      <tr>
+                        <td><?= htmlspecialchars($row['no_identitas']) ?></td>
+                        <td><?= htmlspecialchars($row['kode_qr']) ?></td>
+                        <td><?= htmlspecialchars($row['nama_shelter']) ?></td>
+                        <td><?= $jam_batas ?></td>
+                        <td><span class="chip <?= $chip_class ?>"><?= htmlspecialchars($status ?: 'Aktif') ?></span></td>
+                      </tr>
                   <?php endforeach; ?>
               <?php else: ?>
-                  <tr><td colspan="5" style="text-align: center; color: var(--muted);">Tidak ada peminjaman aktif saat ini.</td></tr>
+                  <tr><td colspan="5" style="text-align: center; color: var(--muted); padding: 24px;">Tidak ada peminjaman aktif saat ini.</td></tr>
               <?php endif; ?>
             </tbody>
           </table>
@@ -87,7 +112,11 @@ $shelters = $pdo->query($sql_shelter)->fetchAll();
 
       <section class="grid-2">
         <?php foreach ($shelters as $sh): ?>
-            <div class="shelter-card"><h3><?= htmlspecialchars($sh['nama_shelter']) ?></h3><p><?= htmlspecialchars($sh['lokasi']) ?></p><b><?= $sh['tersedia'] ?> dari <?= $sh['total'] ?> unit tersedia</b></div>
+            <div class="shelter-card">
+              <h3><?= htmlspecialchars($sh['nama_shelter']) ?></h3>
+              <p><?= htmlspecialchars($sh['lokasi']) ?></p>
+              <b><?= $sh['tersedia'] ?> dari <?= $sh['total'] ?> unit tersedia</b>
+            </div>
         <?php endforeach; ?>
       </section>
     </main>

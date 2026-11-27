@@ -1,5 +1,6 @@
 <?php
 session_start();
+date_default_timezone_set('Asia/Jakarta');
 
 // 1. Proteksi Halaman: Hanya Admin yang bisa masuk
 if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
@@ -103,7 +104,9 @@ $bulan_indo = [1 => 'Jan', 2 => 'Feb', 3 => 'Mar', 4 => 'Apr', 5 => 'Mei', 6 => 
                     $format_mulai = date('d', $tgl_mulai) . ' ' . $bulan_indo[(int)date('m', $tgl_mulai)];
                     $format_selesai = date('d', $tgl_selesai) . ' ' . $bulan_indo[(int)date('m', $tgl_selesai)];
                     
-                    $is_aktif = ($tgl_selesai >= time());
+                    // tgl_selesai bertipe DATE: masih suspen sampai hari terakhir (inklusif)
+                    $is_aktif = ($tgl_selesai >= strtotime(date('Y-m-d')));
+                    $is_permanen = ($row['jenis_tanggungan'] === 'Suspen permanen');
                     $status_class = $is_aktif ? 'chip-bad' : 'chip-ok';
                     $status_text = $is_aktif ? 'Suspen Aktif' : 'Selesai';
                   ?>
@@ -115,8 +118,10 @@ $bulan_indo = [1 => 'Jan', 2 => 'Feb', 3 => 'Mar', 4 => 'Apr', 5 => 'Mei', 6 => 
                       <span class="chip <?= $status_class ?>"><?= htmlspecialchars($row['jenis_tanggungan']) ?></span>
                     </td>
                     <td>
-                      <?php if($is_aktif): ?>
-                        <?= $format_mulai ?> – <?= $format_selesai ?> <?= date('Y') ?>
+                      <?php if ($is_permanen): ?>
+                        <?= $format_mulai ?> – Permanen
+                      <?php elseif ($is_aktif): ?>
+                        <?= $format_mulai ?> – <?= $format_selesai ?> <?= date('Y', $tgl_selesai) ?>
                       <?php else: ?>
                         Selesai (<?= $format_mulai ?> – <?= $format_selesai ?>)
                       <?php endif; ?>

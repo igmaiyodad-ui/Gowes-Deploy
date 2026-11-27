@@ -6,8 +6,34 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'petugas') {
 }
 require_once '../config/koneksi.php';
 
-$sql = "SELECT lk.*, s.kode_qr, pm.no_identitas FROM laporan_kondisi lk JOIN peminjaman p ON lk.id_peminjaman = p.id_peminjaman JOIN peminjam pm ON p.id_peminjam = pm.id_peminjam JOIN sepeda s ON p.id_sepeda = s.id_sepeda ORDER BY lk.tgl_lapor DESC";
-$laporan = $pdo->query($sql)->fetchAll();
+// Logika Filter Pencarian & Tanggal
+$search = isset($_GET['search']) ? trim($_GET['search']) : '';
+$filter_date = isset($_GET['date']) ? trim($_GET['date']) : '';
+$where_clauses = [];
+$params = [];
+
+if (!empty($search)) {
+    $where_clauses[] = "(pm.no_identitas ILIKE :search OR s.kode_qr ILIKE :search)";
+    $params[':search'] = "%$search%";
+}
+if (!empty($filter_date)) {
+    $where_clauses[] = "DATE(lk.tgl_lapor) = :filter_date";
+    $params[':filter_date'] = $filter_date;
+}
+
+$where_sql = count($where_clauses) > 0 ? "WHERE " . implode(" AND ", $where_clauses) : "";
+
+$sql = "SELECT lk.*, s.kode_qr, pm.no_identitas 
+        FROM laporan_kondisi lk 
+        JOIN peminjaman p ON lk.id_peminjaman = p.id_peminjaman 
+        JOIN peminjam pm ON p.id_peminjam = pm.id_peminjam 
+        JOIN sepeda s ON p.id_sepeda = s.id_sepeda 
+        $where_sql
+        ORDER BY lk.tgl_lapor DESC, lk.id_laporankondisi DESC";
+$stmt = $pdo->prepare($sql);
+$stmt->execute($params);
+$laporan = $stmt->fetchAll();
+
 $bulan_indo = [1 => 'Jan', 2 => 'Feb', 3 => 'Mar', 4 => 'Apr', 5 => 'Mei', 6 => 'Jun', 7 => 'Jul', 8 => 'Agu', 9 => 'Sep', 10 => 'Okt', 11 => 'Nov', 12 => 'Des'];
 ?>
 <!doctype html>
@@ -19,16 +45,64 @@ $bulan_indo = [1 => 'Jan', 2 => 'Feb', 3 => 'Mar', 4 => 'Apr', 5 => 'Mei', 6 => 
   <link rel="stylesheet" href="../assets/css/fonts.css"><link rel="stylesheet" href="../assets/css/tokens.css">
   <link rel="stylesheet" href="../assets/css/base.css"><link rel="stylesheet" href="../assets/css/components.css">
   <link rel="stylesheet" href="../assets/css/panel.css"><link rel="stylesheet" href="../assets/css/loader.css">
+  <style>
+    /* Tombol Ikon Kalender Saja */
+    .calendar-btn-wrap {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      background: #fff;
+      border: 1.5px solid var(--primary);
+      border-radius: 8px;
+      color: var(--primary);
+      cursor: pointer;
+      flex: 0 0 auto;
+      transition: background 0.2s, color 0.2s;
+    }
+    .calendar-btn-wrap:hover,
+    .calendar-btn-wrap.has-date {
+      background: var(--primary);
+      color: #fff;
+    }
+    .calendar-btn-wrap svg { width: 17px; height: 17px; pointer-events: none; }
+    .calendar-btn-wrap input[type="date"] {
+      position: absolute; inset: 0; width: 100%; height: 100%;
+      opacity: 0; cursor: pointer; border: none; margin: 0; padding: 0;
+    }
+    .calendar-btn-wrap input[type="date"]::-webkit-calendar-picker-indicator {
+      position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer;
+    }
+
+    @media (max-width: 768px) {
+      .main { padding: 16px !important; }
+      .topbar-a { flex-direction: column; align-items: flex-start; gap: 10px; }
+      .topbar-a h1 { font-size: 22px; line-height: 1.25; }
+      .panel { padding: 16px; margin-top: 16px; }
+      .panel-head-tools { flex-direction: column; align-items: stretch; gap: 12px; }
+      .panel-head-tools .toolbar-group { display: flex; flex-direction: row; align-items: center; width: 100%; gap: 8px; }
+      .calendar-btn-wrap { width: 42px; height: 42px; }
+      .panel-head-tools .input-wrapper { flex: 1; min-width: 0; height: 42px; }
+      .panel-head-tools .inp-cari { flex: 1; min-width: 0; font-size: 14px; }
+      .panel-head-tools .btn-cari { height: 100%; padding: 0 18px; }
+      .tbl th:last-child, .tbl td:last-child { white-space: normal; min-width: 180px; }
+    }
+  </style>
 </head>
 <body class="admin" data-peran="petugas">
   <div class="admin-shell">
     <aside class="sidebar">
-      <input type="checkbox" id="nav-toggle" class="nav-toggle">
+      <input type="checkbox" id="nav-toggle" class="nav-toggle" aria-label="Buka atau tutup menu">
       <div class="sidebar-header">
-        <div><a class="logo" href="dashboard.php"><img src="../img/logo-white.png" alt="GOWES"></a><div class="role">Petugas / Satpam</div></div>
-        <label class="hamburger" for="nav-toggle"><span></span><span></span><span></span></label>
+        <div>
+          <a class="logo" href="dashboard.php"><img src="../img/logo-white.png" alt="GOWES"></a>
+          <div class="role">Petugas / Satpam</div>
+        </div>
+        <label class="hamburger" for="nav-toggle" aria-label="Buka menu"><span></span><span></span><span></span></label>
       </div>
-      <nav class="menu">
+      <nav class="menu" aria-label="Menu Petugas / Satpam">
         <a href="dashboard.php">Dashboard</a>
         <a href="unit.php">Unit Go-bike</a>
         <a href="peminjaman.php">Peminjaman</a>
@@ -45,7 +119,28 @@ $bulan_indo = [1 => 'Jan', 2 => 'Feb', 3 => 'Mar', 4 => 'Apr', 5 => 'Mei', 6 => 
       </header>
 
       <section class="panel">
-        <div class="panel-head"><h2>Laporan Terbaru</h2></div>
+        <div class="panel-head-tools">
+          <h2>Laporan Terbaru</h2>
+          <form method="GET" action="" class="toolbar-group">
+            <!-- Tombol Ikon Kalender Saja -->
+            <div class="calendar-btn-wrap <?= !empty($filter_date) ? 'has-date' : '' ?>" title="<?= !empty($filter_date) ? 'Tanggal: ' . htmlspecialchars($filter_date) : 'Filter Tanggal' ?>" onclick="bukaKalender(this)">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                <line x1="16" y1="2" x2="16" y2="6"></line>
+                <line x1="8" y1="2" x2="8" y2="6"></line>
+                <line x1="3" y1="10" x2="21" y2="10"></line>
+              </svg>
+              <input type="date" name="date" value="<?= htmlspecialchars($filter_date) ?>" onchange="this.form.submit()" aria-label="Filter Tanggal">
+            </div>
+
+            <!-- Input Pencarian -->
+            <div class="input-wrapper">
+              <input type="search" name="search" class="inp-cari" placeholder="Cari NIM / Unit..." value="<?= htmlspecialchars($search) ?>">
+              <button type="submit" class="btn-cari">Cari</button>
+            </div>
+          </form>
+        </div>
+
         <div class="table-wrap">
           <table class="tbl">
             <thead><tr><th>Tanggal</th><th>Unit</th><th>Nomor Identitas</th><th>Kondisi</th><th>Keterangan</th></tr></thead>
@@ -90,5 +185,13 @@ $bulan_indo = [1 => 'Jan', 2 => 'Feb', 3 => 'Mar', 4 => 'Apr', 5 => 'Mei', 6 => 
   <script src="../assets/js/common.js"></script>
   <script src="../assets/js/logout-modal.js"></script>
   <script src="../assets/js/loader.js"></script>
+  <script>
+    function bukaKalender(el) {
+      const input = el.querySelector('input[type="date"]');
+      if (input && typeof input.showPicker === 'function') {
+        try { input.showPicker(); } catch (e) { input.focus(); }
+      }
+    }
+  </script>
 </body>
 </html>

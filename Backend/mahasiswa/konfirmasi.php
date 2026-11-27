@@ -18,7 +18,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !isset($_POST['id_sepeda']) || !iss
     exit;
 }
 
-$id_sepeda = $_POST['id_sepeda'];
+$id_sepeda = (int)$_POST['id_sepeda'];
 $durasi    = (int)$_POST['durasi_pinjam'];
 
 // ==========================================
@@ -28,27 +28,38 @@ if (isset($_POST['action']) && $_POST['action'] === 'confirm') {
     try {
         $pdo->beginTransaction();
 
-        $waktu_sekarang = date('Y-m-d H:i:s');
-        // Batas kembali sementara (akan dihitung ulang oleh Satpam)
-        $batas_sementara = date('Y-m-d H:i:s', strtotime("+$durasi hours"));
+        // 1. Kunci sepeda secara atomik: hanya berhasil kalau masih 'Tersedia'.
+        //    RETURNING id_shelter dipakai untuk kolom id_shelter di tabel peminjaman (NOT NULL).
+        $stmt_lock = $pdo->prepare("UPDATE sepeda
+                                    SET status_ketersediaan = 'Dipinjam'
+                                    WHERE id_sepeda = :id_sepeda AND status_ketersediaan = 'Tersedia'
+                                    RETURNING id_shelter");
+        $stmt_lock->execute([':id_sepeda' => $id_sepeda]);
+        $id_shelter = $stmt_lock->fetchColumn();
 
-        $sql_insert = "INSERT INTO peminjaman (id_sepeda, id_peminjam, waktu_mulai, durasi_pinjam, batas_kembali, status_peminjaman, waktu_kembali) 
-                       VALUES (:id_sepeda, :id_peminjam, :waktu_mulai, :durasi, :batas_kembali, :status, NULL)";
-        
+        if (!$id_shelter) {
+            $pdo->rollBack();
+            echo "<script>alert('Sepeda sudah tidak tersedia.'); window.location.href='scan.php';</script>";
+            exit;
+        }
+
+        // 2. Catat pengajuan peminjaman.
+        //    batas_kembali TIDAK diisi dari PHP: dihitung otomatis oleh trigger trg_batas_kembali
+        //    (waktu_mulai + durasi_pinjam jam). waktu_kembali default NULL.
+        $waktu_sekarang = date('Y-m-d H:i:s');
+
+        $sql_insert = "INSERT INTO peminjaman (id_peminjam, id_shelter, id_sepeda, waktu_mulai, durasi_pinjam, status_peminjaman)
+                       VALUES (:id_peminjam, :id_shelter, :id_sepeda, :waktu_mulai, :durasi, :status)";
+
         $stmt = $pdo->prepare($sql_insert);
         $stmt->execute([
-            ':id_sepeda'     => $id_sepeda,
-            ':id_peminjam'   => $id_peminjam,
-            ':waktu_mulai'   => $waktu_sekarang,
-            ':durasi'        => $durasi,
-            ':batas_kembali' => $batas_sementara,
-            ':status'        => 'Menunggu' // Kunci utama: status jadi Menunggu
+            ':id_peminjam' => $id_peminjam,
+            ':id_shelter'  => $id_shelter,
+            ':id_sepeda'   => $id_sepeda,
+            ':waktu_mulai' => $waktu_sekarang,
+            ':durasi'      => $durasi,
+            ':status'      => 'Menunggu' // menunggu ACC petugas
         ]);
-        
-        // Kunci sepeda agar tidak bisa discan orang lain
-        $sql_update = "UPDATE sepeda SET status_ketersediaan = 'Dipinjam' WHERE id_sepeda = :id_sepeda";
-        $stmt_update = $pdo->prepare($sql_update);
-        $stmt_update->execute([':id_sepeda' => $id_sepeda]);
 
         $pdo->commit();
         

@@ -29,19 +29,16 @@ try {
     $where_clauses = [];
     $params = [];
 
-    // Filter berdasarkan pencarian (NIM atau Nama)
     if (!empty($search)) {
         $where_clauses[] = "(pm.no_identitas ILIKE :search OR pm.nama ILIKE :search)";
         $params[':search'] = "%$search%";
     }
 
-    // Filter berdasarkan tanggal (Mengecek apakah tanggal berada di antara periode sanksi)
     if (!empty($filter_date)) {
         $where_clauses[] = ":filter_date BETWEEN s.tgl_mulai AND s.tgl_selesai";
         $params[':filter_date'] = $filter_date;
     }
 
-    // Gabungkan WHERE jika ada filter yang aktif
     if (count($where_clauses) > 0) {
         $sql .= " WHERE " . implode(" AND ", $where_clauses);
     }
@@ -56,7 +53,6 @@ try {
     die("Error mengambil data sanksi: " . $e->getMessage());
 }
 
-// Array Bulan Indonesia
 $bulan_indo = [1 => 'Jan', 2 => 'Feb', 3 => 'Mar', 4 => 'Apr', 5 => 'Mei', 6 => 'Jun', 7 => 'Jul', 8 => 'Agu', 9 => 'Sep', 10 => 'Okt', 11 => 'Nov', 12 => 'Des'];
 ?>
 
@@ -68,14 +64,12 @@ $bulan_indo = [1 => 'Jan', 2 => 'Feb', 3 => 'Mar', 4 => 'Apr', 5 => 'Mei', 6 => 
   <title>Sanksi · GOWES</title>
   <link rel="icon" href="../img/logo.png">
   
-  <!-- PATH CSS DIPERBAIKI (Tanpa loader.css) -->
   <link rel="stylesheet" href="../assets/css/fonts.css">
   <link rel="stylesheet" href="../assets/css/tokens.css">
   <link rel="stylesheet" href="../assets/css/base.css">
   <link rel="stylesheet" href="../assets/css/components.css">
   <link rel="stylesheet" href="../assets/css/panel.css">
 
-  <!-- CUSTOM CSS UNTUK SEARCH BAR AGAR RAPI -->
   <style>
     .panel-head {
         display: flex;
@@ -88,6 +82,7 @@ $bulan_indo = [1 => 'Jan', 2 => 'Feb', 3 => 'Mar', 4 => 'Apr', 5 => 'Mei', 6 => 
         display: flex;
         align-items: center;
         gap: 10px;
+        flex-wrap: wrap;
     }
     .search-bar input {
         height: 38px;
@@ -130,21 +125,27 @@ $bulan_indo = [1 => 'Jan', 2 => 'Feb', 3 => 'Mar', 4 => 'Apr', 5 => 'Mei', 6 => 
     <aside class="sidebar">
       <input type="checkbox" id="nav-toggle" class="nav-toggle" aria-label="Buka atau tutup menu">
 
-      <div>
-        <a class="logo" href="dashboard.php"><img src="../img/logo-white.png" alt="GOWES"></a>
-        <div class="role">Super Admin</div>
+      <div class="sidebar-header">
+        <div>
+          <a class="logo" href="dashboard.php"><img src="../img/logo-white.png" alt="GOWES"></a>
+          <div class="role">Super Admin</div>
+        </div>
+
+        <label class="hamburger" for="nav-toggle" aria-label="Buka menu">
+          <span></span>
+          <span></span>
+          <span></span>
+        </label>
       </div>
 
-      <label class="hamburger" for="nav-toggle" aria-label="Buka menu"><span></span><span></span><span></span></label>
-
       <nav class="menu" aria-label="Menu Super Admin">
-        <a href="dashboard.php" class="">Dashboard</a>
-        <a href="unit.php" class="">Unit Go-bike</a>
-        <a href="peminjaman.php" class="">Peminjaman</a>
+        <a href="dashboard.php">Dashboard</a>
+        <a href="unit.php">Unit Go-bike</a>
+        <a href="peminjaman.php">Peminjaman</a>
         <a href="sanksi.php" class="on">Sanksi</a>
-        <a href="laporan.php" class="">Laporan Kondisi</a>
-        <a href="riwayat.php" class="">Riwayat Peminjaman</a>
-        <a href="tambah-petugas-admin.php" class="">Tambah Petugas/Admin</a>
+        <a href="laporan.php">Laporan Kondisi</a>
+        <a href="riwayat.php">Riwayat Peminjaman</a>
+        <a href="tambah-petugas-admin.php">Tambah Petugas/Admin</a>
       </nav>
 
       <a class="menu-logout" href="javascript:void(0);" onclick="openLogoutModal()">Keluar</a>
@@ -161,17 +162,12 @@ $bulan_indo = [1 => 'Jan', 2 => 'Feb', 3 => 'Mar', 4 => 'Apr', 5 => 'Mei', 6 => 
       </header>
 
       <section class="panel">
-        <!-- HEADER PANEL DENGAN SEARCH BAR SEJAJAR -->
         <div class="panel-head">
           <h2>Rekap Sanksi</h2>
           
           <form method="GET" action="" class="search-bar">
-            <!-- Filter Tanggal -->
             <input type="date" name="date" value="<?= htmlspecialchars($filter_date) ?>" onchange="this.form.submit()" title="Filter tanggal">
-            
-            <!-- Pencarian Teks -->
             <input type="search" name="search" placeholder="Cari NIM / Nama..." value="<?= htmlspecialchars($search) ?>">
-            
             <button type="submit">Cari</button>
           </form>
         </div>
@@ -196,10 +192,8 @@ $bulan_indo = [1 => 'Jan', 2 => 'Feb', 3 => 'Mar', 4 => 'Apr', 5 => 'Mei', 6 => 
                     $format_mulai = date('d', $tgl_mulai) . ' ' . $bulan_indo[(int)date('m', $tgl_mulai)];
                     $format_selesai = date('d', $tgl_selesai) . ' ' . $bulan_indo[(int)date('m', $tgl_selesai)];
                     
-                    // Logika Aktif: Hari ini harus di antara tgl_mulai dan tgl_selesai
                     $hari_ini = date('Y-m-d');
                     $is_aktif = ($hari_ini >= $row['tgl_mulai'] && $hari_ini <= $row['tgl_selesai']);
-                    
                     $status_class = $is_aktif ? 'chip-bad' : 'chip-ok';
                   ?>
                   <tr>
@@ -233,9 +227,7 @@ $bulan_indo = [1 => 'Jan', 2 => 'Feb', 3 => 'Mar', 4 => 'Apr', 5 => 'Mei', 6 => 
     </main>
   </div>
 
-  <!-- ========================================== -->
-  <!-- MODAL POP-UP LOGOUT                        -->
-  <!-- ========================================== -->
+  <!-- MODAL POP-UP LOGOUT -->
   <div class="modal-overlay" id="logoutModal">
       <div class="modal-content">
           <div class="modal-icon">
@@ -254,8 +246,6 @@ $bulan_indo = [1 => 'Jan', 2 => 'Feb', 3 => 'Mar', 4 => 'Apr', 5 => 'Mei', 6 => 
       </div>
   </div>
 
-  <!-- JAVASCRIPT EKSTERNAL -->
-  <script src="../assets/js/common.js"></script>
   <script src="../assets/js/logout-modal.js"></script>
 </body>
 </html>

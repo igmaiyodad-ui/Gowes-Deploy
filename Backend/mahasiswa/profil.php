@@ -87,7 +87,8 @@ try {
           <div class="rows">
             <div class="row"><span class="k">NIM</span><span class="v"><?= htmlspecialchars($user['no_identitas']) ?></span></div>
             <div class="row"><span class="k">Nama</span><span class="v"><?= htmlspecialchars($user['nama']) ?></span></div>
-            <div class="row"><span class="k">Peran</span><span class="v"><?= htmlspecialchars($user['jenis_peminjam']) ?></span></div>
+            <div class="row"><span class="k">No. Telepon</span><span class="v"><?= htmlspecialchars(!empty($user['no_telp']) ? $user['no_telp'] : '-') ?></span></div>
+            <div class="row"><span class="k">Alamat</span><span class="v"><?= htmlspecialchars(!empty($user['alamat']) ? $user['alamat'] : '-') ?></span></div>
           </div>
         </div>
         

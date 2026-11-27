@@ -21,7 +21,6 @@ $search = isset($_GET['search']) ? trim($_GET['search']) : '';
 $filter_date = isset($_GET['date']) ? trim($_GET['date']) : '';
 
 try {
-    // Query dasar mengambil laporan kondisi dengan JOIN ke tabel terkait
     $sql = "SELECT 
                 lk.tgl_lapor, 
                 sp.kode_qr, 
@@ -39,19 +38,16 @@ try {
     $where_clauses = [];
     $params = [];
 
-    // Tambahkan filter pencarian (berdasarkan Unit atau Nomor Identitas)
     if (!empty($search)) {
         $where_clauses[] = "(sp.kode_qr ILIKE :search OR p.no_identitas ILIKE :search)";
         $params[':search'] = "%$search%";
     }
 
-    // Tambahkan filter tanggal
     if (!empty($filter_date)) {
         $where_clauses[] = "lk.tgl_lapor = :filter_date";
         $params[':filter_date'] = $filter_date;
     }
 
-    // Gabungkan klausa WHERE jika ada
     if (count($where_clauses) > 0) {
         $sql .= " WHERE " . implode(" AND ", $where_clauses);
     }
@@ -66,10 +62,6 @@ try {
     die("Error Database: " . $e->getMessage());
 }
 
-// ==========================================
-// FUNGSI BANTUAN
-// ==========================================
-// Fungsi untuk format tanggal Indonesia
 function formatTanggalIndo($dateString) {
     if (!$dateString) return '-';
     $bulan = [
@@ -90,14 +82,12 @@ function formatTanggalIndo($dateString) {
   <title>Laporan kondisi · GOWES</title>
   <link rel="icon" href="../img/logo.png">
   
-  <!-- PERBAIKAN PATH CSS -->
   <link rel="stylesheet" href="../assets/css/fonts.css">
   <link rel="stylesheet" href="../assets/css/tokens.css">
   <link rel="stylesheet" href="../assets/css/base.css">
   <link rel="stylesheet" href="../assets/css/components.css">
   <link rel="stylesheet" href="../assets/css/panel.css">
 
-  <!-- CUSTOM CSS UNTUK SEARCH BAR AGAR SEJAJAR RAPI -->
   <style>
     .panel-head {
         display: flex;
@@ -110,6 +100,7 @@ function formatTanggalIndo($dateString) {
         display: flex;
         align-items: center;
         gap: 10px;
+        flex-wrap: wrap;
     }
     .search-bar input {
         height: 38px;
@@ -154,24 +145,30 @@ function formatTanggalIndo($dateString) {
     <aside class="sidebar">
       <input type="checkbox" id="nav-toggle" class="nav-toggle" aria-label="Buka atau tutup menu">
 
-      <div>
-        <a class="logo" href="dashboard.php"><img src="../img/logo-white.png" alt="GOWES"></a>
-        <div class="role">Super Admin</div>
+      <div class="sidebar-header">
+        <div>
+          <a class="logo" href="dashboard.php"><img src="../img/logo-white.png" alt="GOWES"></a>
+          <div class="role">Super Admin</div>
+        </div>
+
+        <label class="hamburger" for="nav-toggle" aria-label="Buka menu">
+          <span></span>
+          <span></span>
+          <span></span>
+        </label>
       </div>
 
-      <label class="hamburger" for="nav-toggle" aria-label="Buka menu"><span></span><span></span><span></span></label>
-
       <nav class="menu" aria-label="Menu Super Admin">
-        <a href="dashboard.php" class="">Dashboard</a>
-        <a href="unit.php" class="">Unit Go-bike</a>
-        <a href="peminjaman.php" class="">Peminjaman</a>
-        <a href="sanksi.php" class="">Sanksi</a>
+        <a href="dashboard.php">Dashboard</a>
+        <a href="unit.php">Unit Go-bike</a>
+        <a href="peminjaman.php">Peminjaman</a>
+        <a href="sanksi.php">Sanksi</a>
         <a href="laporan.php" class="on">Laporan Kondisi</a>
-        <a href="riwayat.php" class="">Riwayat Peminjaman</a>
-        <a href="tambah-petugas-admin.php" class="">Tambah Petugas/Admin</a>
+        <a href="riwayat.php">Riwayat Peminjaman</a>
+        <a href="tambah-petugas-admin.php">Tambah Petugas/Admin</a>
       </nav>
 
-      <a class="menu-logout" href="../auth/login.php?logout=true">Keluar</a>
+      <a class="menu-logout" href="javascript:void(0);" onclick="openLogoutModal()">Keluar</a>
     </aside>
 
     <!-- ===== KONTEN UTAMA ===== -->
@@ -185,18 +182,12 @@ function formatTanggalIndo($dateString) {
       </header>
 
       <section class="panel">
-        
-        <!-- HEADER PANEL DENGAN SEARCH BAR SEJAJAR -->
         <div class="panel-head">
           <h2>Laporan Terbaru</h2>
           
           <form method="GET" action="" class="search-bar">
-            <!-- Filter Tanggal -->
             <input type="date" name="date" value="<?= htmlspecialchars($filter_date) ?>" onchange="this.form.submit()" title="Filter tanggal">
-            
-            <!-- Pencarian Teks -->
             <input type="search" name="search" placeholder="Cari Unit / NIM..." value="<?= htmlspecialchars($search) ?>">
-            
             <button type="submit">Cari</button>
           </form>
         </div>
@@ -216,8 +207,6 @@ function formatTanggalIndo($dateString) {
               <?php if (count($laporan) > 0): ?>
                   <?php foreach ($laporan as $row): ?>
                       <?php
-                          // LOGIKA PENENTUAN KONDISI
-                          // Asumsi nilai 1-5. Jika ada nilai <= 2 dianggap Rusak, <= 4 Perlu Perawatan, selain itu Baik.
                           $is_rusak = ($row['nilai_ban'] <= 2 || $row['nilai_rem'] <= 2 || $row['nilai_rantai'] <= 2 || $row['nilai_rangka_bodi'] <= 2);
                           $is_perlu_perawatan = ($row['nilai_ban'] <= 4 || $row['nilai_rem'] <= 4 || $row['nilai_rantai'] <= 4 || $row['nilai_rangka_bodi'] <= 4);
                           
@@ -255,10 +244,34 @@ function formatTanggalIndo($dateString) {
     </main>
   </div>
 
-  <!-- PATH JS TANPA LOADER -->
-  <script src="../assets/js/common.js"></script>
+  <!-- MODAL POP-UP LOGOUT -->
+  <div class="modal-overlay" id="logoutModal">
+      <div class="modal-content">
+          <div class="modal-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                  <polyline points="16 17 21 12 16 7"></polyline>
+                  <line x1="21" y1="12" x2="9" y2="12"></line>
+              </svg>
+          </div>
+          <h2>Konfirmasi Keluar</h2>
+          <p>Apakah Anda yakin ingin keluar dari akun ini? Anda harus login kembali untuk mengakses halaman superadmin.</p>
+          <div class="modal-actions">
+              <button type="button" class="btn-cancel" onclick="closeLogoutModal()">Batal</button>
+              <a href="../auth/login.php?logout=true" class="btn-confirm">Ya, Keluar</a>
+          </div>
+      </div>
+  </div>
+
+  <script>
+      function openLogoutModal() {
+          document.getElementById('logoutModal').classList.add('active');
+      }
+      function closeLogoutModal() {
+          document.getElementById('logoutModal').classList.remove('active');
+      }
+  </script>
   <script src="../assets/js/tabel.js"></script>
-  <script src="../assets/js/modal.js"></script>
 </body>
 
 </html>

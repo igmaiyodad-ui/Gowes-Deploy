@@ -25,41 +25,20 @@ $inisial     = strtoupper(substr($nama_user, 0, 1));
 // ==========================================
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'return') {
     try {
-        $pdo->beginTransaction();
+        // Mahasiswa hanya MENGAJUKAN pengembalian. waktu_kembali, status 'Selesai' dan
+        // status sepeda 'Tersedia' diisi petugas saat ACC (sesuai alur di peminjaman.php).
+        $stmt_ajukan = $pdo->prepare("UPDATE peminjaman
+                                      SET status_peminjaman = 'Menunggu Kembali'
+                                      WHERE id_peminjam = :id
+                                        AND waktu_kembali IS NULL
+                                        AND status_peminjaman = 'Dipinjam'");
+        $stmt_ajukan->execute([':id' => $id_peminjam]);
 
-        // Ambil data peminjaman aktif
-        $stmt_cek = $pdo->prepare("SELECT id_peminjaman, id_sepeda FROM peminjaman 
-                                   WHERE id_peminjam = :id AND waktu_kembali IS NULL");
-        $stmt_cek->execute([':id' => $id_peminjam]);
-        $peminjaman_aktif = $stmt_cek->fetch();
-
-        if ($peminjaman_aktif) {
-            // 1. Update waktu_kembali dengan waktu saat ini (WIB)
-            $waktu_kembali_wib = date('Y-m-d H:i:s');
-            $stmt_update_pinjam = $pdo->prepare("UPDATE peminjaman 
-                                                 SET waktu_kembali = :waktu_kembali 
-                                                 WHERE id_peminjaman = :id_pinjam");
-            $stmt_update_pinjam->execute([
-                ':waktu_kembali' => $waktu_kembali_wib,
-                ':id_pinjam'     => $peminjaman_aktif['id_peminjaman']
-            ]);
-
-            // 2. Update status sepeda menjadi Tersedia kembali
-            $stmt_update_sepeda = $pdo->prepare("UPDATE sepeda 
-                                                 SET status_ketersediaan = 'Tersedia' 
-                                                 WHERE id_sepeda = :id_sepeda");
-            $stmt_update_sepeda->execute([':id_sepeda' => $peminjaman_aktif['id_sepeda']]);
-        }
-
-        $pdo->commit();
-        
-        // Redirect ke halaman selesai
-        header("Location: selesai.php");
+        header("Location: peminjaman.php");
         exit;
 
     } catch (PDOException $e) {
-        $pdo->rollBack();
-        die("Gagal memproses pengembalian: " . $e->getMessage());
+        die("Gagal mengajukan pengembalian: " . $e->getMessage());
     }
 }
 
@@ -72,7 +51,8 @@ try {
                 sp.kode_qr, 
                 sh.nama_shelter, 
                 p.waktu_mulai, 
-                p.batas_kembali 
+                p.batas_kembali,
+                p.status_peminjaman 
             FROM peminjaman p
             JOIN sepeda sp ON p.id_sepeda = sp.id_sepeda
             JOIN shelter sh ON sp.id_shelter = sh.id_shelter
@@ -85,6 +65,12 @@ try {
 
     if (!$peminjaman) {
         header("Location: dashboard.php");
+        exit;
+    }
+
+    // Pengembalian hanya bisa diajukan saat sepeda sudah resmi 'Dipinjam'
+    if ($peminjaman['status_peminjaman'] !== 'Dipinjam') {
+        header("Location: peminjaman.php");
         exit;
     }
 
@@ -192,11 +178,11 @@ try {
   <div class="overlay" id="modal-kembali" role="dialog" aria-modal="true">
     <div class="dialog">
       <h2>Kembalikan Go-bike?</h2>
-      <p>Pastikan Go-bike sudah diparkir di shelter dan kunci diserahkan ke petugas.</p>
+      <p>Pastikan Go-bike sudah diparkir di shelter dan kunci diserahkan ke petugas. Pengembalian baru selesai setelah di-ACC petugas.</p>
       
       <form method="POST" action="" style="margin-top: 20px;">
           <input type="hidden" name="action" value="return">
-          <button type="submit" class="btn btn-primary" style="width:100%; margin-bottom:10px; cursor:pointer;">Ya, kembalikan</button>
+          <button type="submit" class="btn btn-primary" style="width:100%; margin-bottom:10px; cursor:pointer;">Ya, ajukan pengembalian</button>
       </form>
       
       <button type="button" class="btn btn-soft" onclick="document.getElementById('modal-kembali').classList.remove('show')" style="width:100%; cursor:pointer;">Batal</button>
